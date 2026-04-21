@@ -459,7 +459,10 @@ theorem Kernel.injectivePriorPushforward_of_rowMatrixFullRank
 omit [Fintype β] in
 theorem Kernel.mutualInformation_strictlyConcave_of_rowMatrixFullRank [Finite β]
     (k : Kernel α β) [IsMarkovKernel k] (hRank : ChannelCapacity.Kernel.RowMatrixFullRank k) :
-    ProbabilityMeasure.StrictlyConcave (fun p : ProbabilityMeasure α => mutualInformation p k) := by
+    ∀ (p q : ProbabilityMeasure α) (_h_ne : p ≠ q) (t : NNReal)
+      (_ht_pos : 0 < t) (ht_lt_one : t < 1),
+      mutualInformation (ProbabilityMeasure.convexCombination p q t (le_of_lt ht_lt_one)) k >
+        (t : ℝ) * mutualInformation p k + (1 - (t : ℝ)) * mutualInformation q k := by
   let _instFintypeβ : Fintype β := Fintype.ofFinite β
   intro p q h_ne t ht_pos ht_lt_one
   have hPush : Kernel.InjectivePriorPushforward k :=
@@ -615,7 +618,7 @@ private theorem exists_unique_capacity_achieving_prior_of_finite_aux [Finite β]
       mutualInformation p k ≤ mutualInformation pMax k := hpMax' p
       _ = channelCapacity k := (channelCapacity_eq_of_isMaxOn_univ k hpMax).symm
       _ = mutualInformation q k := hq.symm
-  exact ProbabilityMeasure.eq_of_isMaxOn_univ_of_strictlyConcave
+  exact ProbabilityMeasure.eq_of_isMaxOn_univ_of_strictConcave
     (p := pMax) (q := q)
     (Kernel.mutualInformation_strictlyConcave_of_rowMatrixFullRank k hRank) hpMax hqMax |>.symm
 

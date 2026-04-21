@@ -83,11 +83,14 @@ with the same output law.
 
 ## File layout
 
-- `ChannelCapacity/Basic.lean`: mutual information and joint/output laws
+- `ChannelCapacity/Basic.lean`: mutual information, joint/output laws, and the one local
+  `ProbabilityMeasure.convexCombination` wrapper needed because Mathlib does not yet give
+  `ProbabilityMeasure` an affine-space structure
 - `ChannelCapacity/Finite.lean`: finite entropy formula, continuity, strict concavity, and the
   fully discharged finite uniqueness theorem
 - `ChannelCapacity/NonDegeneracy.lean`: injective pushforward and row separation
-- `ChannelCapacity/StrictConcavity.lean`: strict concavity on probability measures
+- `ChannelCapacity/StrictConcavity.lean`: direct strict-concavity and uniqueness lemmas phrased
+  along `ProbabilityMeasure.convexCombination`
 - `ChannelCapacity/Capacity.lean`: capacity and uniqueness packaging
 - `ChannelCapacity/KernelCompositionKullbackLeibler.lean`: generic KL/kernel lemmas with no
   channel-specific dependencies, extracted toward a standalone Mathlib PR

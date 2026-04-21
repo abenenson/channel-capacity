@@ -82,8 +82,6 @@ theorem exists_unique_capacity_achieving_prior
     (hCompact : IsCompact (Set.univ : Set (ProbabilityMeasure α)))
     (hUsc : UpperSemicontinuous fun p : ProbabilityMeasure α => mutualInformation p k) :
     ∃! p : ProbabilityMeasure α, mutualInformation p k = channelCapacity k := by
-  let hStrict : Kernel.StrictlyConcaveMutualInformation k h :=
-    Kernel.mutualInformation_strictlyConcave_of_injectivePriorPushforward k h hWC
   rcases exists_isMaxOn_mutualInformation k hNonempty hCompact hUsc with ⟨pMax, hpMax⟩
   refine ⟨pMax, (channelCapacity_eq_of_isMaxOn_univ k hpMax).symm, ?_⟩
   intro p hp
@@ -95,6 +93,7 @@ theorem exists_unique_capacity_achieving_prior
       mutualInformation q k ≤ mutualInformation pMax k := hpMax' q
       _ = channelCapacity k := (channelCapacity_eq_of_isMaxOn_univ k hpMax).symm
       _ = mutualInformation p k := hp.symm
-  exact ProbabilityMeasure.eq_of_isMaxOn_univ_of_strictlyConcave hStrict hp' hpMax
+  exact ProbabilityMeasure.eq_of_isMaxOn_univ_of_strictConcave
+    (Kernel.mutualInformation_strictlyConcave_of_injectivePriorPushforward k h hWC) hp' hpMax
 
 end ChannelCapacity

@@ -24,6 +24,11 @@ This file keeps the surface small:
 - `mutualInformation`
 
 The mutual information is defined directly from Mathlib's `klDiv`.
+
+`ProbabilityMeasure.convexCombination` is the one deliberate local primitive here. Mathlib already
+has the corresponding affine structure on measures, but not yet on the subtype of probability
+measures, so this file provides the subtype-level wrapper needed by the strict-concavity and finite
+uniqueness arguments.
 -/
 
 open MeasureTheory
@@ -34,7 +39,10 @@ namespace ProbabilityMeasure
 
 variable {Ω : Type*} [MeasurableSpace Ω]
 
-/-- Convex combination of two probability measures. -/
+/-- Convex combination of two probability measures.
+
+This is a subtype-level wrapper around convex combinations of measures. It exists because Mathlib
+does not currently provide an affine-space structure on `ProbabilityMeasure Ω`. -/
 noncomputable def convexCombination (μ ν : ProbabilityMeasure Ω) (t : NNReal)
     (ht : t ≤ (1 : NNReal)) :
     ProbabilityMeasure Ω :=
@@ -107,6 +115,7 @@ theorem independentJointLaw_toMeasure (k : Kernel α β) [IsMarkovKernel k]
       p.toMeasure ⊗ₘ Kernel.const α (outputPrior k p).toMeasure :=
   rfl
 
+/-- Shannon mutual information between an input prior and a Markov kernel. -/
 noncomputable def mutualInformation (p : ProbabilityMeasure α) (k : Kernel α β)
     [IsMarkovKernel k] : ℝ :=
   (InformationTheory.klDiv (jointLaw k p).toMeasure (independentJointLaw k p).toMeasure).toReal

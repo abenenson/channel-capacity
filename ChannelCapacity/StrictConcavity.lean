@@ -12,8 +12,9 @@ import Mathlib.Order.Filter.Extr
 
 Strict concavity infrastructure on the simplex of probability measures.
 
-This file uses an explicit convex-combination operation on `ProbabilityMeasure α`, rather than
-`StrictConcaveOn`, because the ambient type of probability measures is not itself a vector space.
+Mathlib does not currently equip `ProbabilityMeasure α` with an affine or vector-space structure, so
+strict concavity is phrased directly in terms of the explicit operation
+`ProbabilityMeasure.convexCombination`.
 -/
 
 open MeasureTheory
@@ -24,15 +25,15 @@ namespace ProbabilityMeasure
 
 variable {α : Type*} [MeasurableSpace α]
 
-/-- A strict concavity predicate tailored to probability measures. -/
-def StrictlyConcave (f : ProbabilityMeasure α → ℝ) : Prop :=
-  ∀ (p q : ProbabilityMeasure α) (_h_ne : p ≠ q) (t : NNReal)
-    (_ht_pos : 0 < t) (ht_lt_one : t < 1),
-    f (ProbabilityMeasure.convexCombination p q t (le_of_lt ht_lt_one)) >
-      (t : ℝ) * f p + (1 - (t : ℝ)) * f q
-
-theorem eq_of_isMaxOn_univ_of_strictlyConcave {f : ProbabilityMeasure α → ℝ}
-    (hStrict : StrictlyConcave f) {p q : ProbabilityMeasure α}
+/-- Two global maximizers coincide if the function is strictly concave along convex combinations of
+probability measures. -/
+theorem eq_of_isMaxOn_univ_of_strictConcave
+    {f : ProbabilityMeasure α → ℝ}
+    (hStrict : ∀ (p q : ProbabilityMeasure α) (_h_ne : p ≠ q) (t : NNReal)
+      (_ht_pos : 0 < t) (ht_lt_one : t < 1),
+        f (ProbabilityMeasure.convexCombination p q t (le_of_lt ht_lt_one)) >
+          (t : ℝ) * f p + (1 - (t : ℝ)) * f q)
+    {p q : ProbabilityMeasure α}
     (hp : IsMaxOn f Set.univ p) (hq : IsMaxOn f Set.univ q) : p = q := by
   by_contra hne
   have hp' : ∀ r, f r ≤ f p := isMaxOn_univ_iff.mp hp
@@ -154,11 +155,7 @@ variable {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
 
 namespace Kernel
 
-def StrictlyConcaveMutualInformation (k : Kernel α β) [IsMarkovKernel k]
-    (_h : Kernel.InjectivePriorPushforward k) : Prop :=
-  ProbabilityMeasure.StrictlyConcave fun p => mutualInformation p k
-
-theorem mutualInformation_strictlyConcave_fst
+private theorem mutualInformation_strictlyConcave_aux
     {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
     [MeasurableSpace.CountableOrCountablyGenerated α β]
     (k : Kernel α β) [IsMarkovKernel k]
@@ -341,9 +338,12 @@ theorem mutualInformation_strictlyConcave_of_injectivePriorPushforward
     (k : Kernel α β) [IsMarkovKernel k]
     (h : Kernel.InjectivePriorPushforward k)
     (hWC : Kernel.WellConditionedForCapacity k) :
-    Kernel.StrictlyConcaveMutualInformation k h := by
+    ∀ (p q : ProbabilityMeasure α) (_h_ne : p ≠ q) (t : NNReal)
+      (_ht_pos : 0 < t) (ht_lt_one : t < 1),
+      mutualInformation (ProbabilityMeasure.convexCombination p q t (le_of_lt ht_lt_one)) k >
+        (t : ℝ) * mutualInformation p k + (1 - (t : ℝ)) * mutualInformation q k := by
   intro p q h_ne t ht_pos ht_lt_one
-  simpa using mutualInformation_strictlyConcave_fst k h hWC p q h_ne t ht_pos ht_lt_one
+  simpa using mutualInformation_strictlyConcave_aux k h hWC p q h_ne t ht_pos ht_lt_one
 
 end Kernel
 
