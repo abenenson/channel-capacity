@@ -1,0 +1,17 @@
+name = "channel-capacity"
+version = "0.1.0"
+defaultTargets = ["ChannelCapacity"]
+
+[leanOptions]
+pp.unicode.fun = true
+relaxedAutoImplicit = false
+weak.linter.mathlibStandardSet = true
+maxSynthPendingDepth = 3
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.29.1"
+
+[[lean_lib]]
+name = "ChannelCapacity"
