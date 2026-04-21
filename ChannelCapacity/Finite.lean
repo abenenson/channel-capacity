@@ -592,25 +592,12 @@ end FiniteWeakTopology
 section
 
 omit [Fintype β] in
-/-- Finite-alphabet capacity theorem with all hypotheses discharged internally. The general
-measure-theoretic theorem remains available separately; this theorem is the concrete upstream-ready
-specialization using the canonical weak topology on probability measures over finite discrete
-alphabets. -/
-theorem exists_unique_capacity_achieving_prior_of_finite [Finite β]
-    [Nonempty α] (k : Kernel α β) [IsMarkovKernel k]
-    (hRank : ChannelCapacity.Kernel.RowMatrixFullRank k) :
+private theorem exists_unique_capacity_achieving_prior_of_finite_aux [Finite β]
+    [Nonempty α] [TopologicalSpace α] [TopologicalSpace β]
+    [DiscreteTopology α] [DiscreteTopology β] [T2Space α] [T2Space β]
+    [BorelSpace α] [BorelSpace β] [CompactSpace α] [CompactSpace β]
+    (k : Kernel α β) [IsMarkovKernel k] (hRank : ChannelCapacity.Kernel.RowMatrixFullRank k) :
     ∃! p : ProbabilityMeasure α, mutualInformation p k = channelCapacity k := by
-  let _instFintypeβ : Fintype β := Fintype.ofFinite β
-  let _ : TopologicalSpace α := ⊥
-  let _ : TopologicalSpace β := ⊥
-  let _ : DiscreteTopology α := ⟨rfl⟩
-  let _ : DiscreteTopology β := ⟨rfl⟩
-  let _ : T2Space α := by infer_instance
-  let _ : T2Space β := by infer_instance
-  let _ : BorelSpace α := by infer_instance
-  let _ : BorelSpace β := by infer_instance
-  let _ : CompactSpace α := Finite.compactSpace
-  let _ : CompactSpace β := Finite.compactSpace
   have hcont : Continuous fun p : ProbabilityMeasure α => mutualInformation p k :=
     continuous_mutualInformation_of_finite k
   have hNonempty : (Set.univ : Set (ProbabilityMeasure α)).Nonempty := by
@@ -631,6 +618,28 @@ theorem exists_unique_capacity_achieving_prior_of_finite [Finite β]
   exact ProbabilityMeasure.eq_of_isMaxOn_univ_of_strictlyConcave
     (p := pMax) (q := q)
     (Kernel.mutualInformation_strictlyConcave_of_rowMatrixFullRank k hRank) hpMax hqMax |>.symm
+
+omit [Fintype β] in
+/-- Finite-alphabet capacity theorem with all hypotheses discharged internally. The general
+measure-theoretic theorem remains available separately; this theorem is the concrete upstream-ready
+specialization using the canonical weak topology on probability measures over finite discrete
+alphabets. -/
+theorem exists_unique_capacity_achieving_prior_of_finite [Finite β]
+    [Nonempty α] (k : Kernel α β) [IsMarkovKernel k]
+    (hRank : ChannelCapacity.Kernel.RowMatrixFullRank k) :
+    ∃! p : ProbabilityMeasure α, mutualInformation p k = channelCapacity k := by
+  letI : Fintype β := Fintype.ofFinite β
+  letI : TopologicalSpace α := ⊥
+  letI : TopologicalSpace β := ⊥
+  letI : DiscreteTopology α := ⟨rfl⟩
+  letI : DiscreteTopology β := ⟨rfl⟩
+  letI : T2Space α := by infer_instance
+  letI : T2Space β := by infer_instance
+  letI : BorelSpace α := by infer_instance
+  letI : BorelSpace β := by infer_instance
+  letI : CompactSpace α := Finite.compactSpace
+  letI : CompactSpace β := Finite.compactSpace
+  exact exists_unique_capacity_achieving_prior_of_finite_aux k hRank
 
 end
 
