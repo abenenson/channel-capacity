@@ -42,8 +42,9 @@ statement.
 
 ## Counterexample
 
-`ChannelCapacity/Counterexample.lean` contains the `Fin 6 → Fin 3` permutation channel whose rows
-are the six permutations of `(1/2, 1/3, 1/6)`. The file proves:
+`ChannelCapacity.Counterexample` is kept as an explicit opt-in import rather than part of the
+top-level library surface. It contains the `Fin 6 → Fin 3` permutation channel whose rows are the
+six permutations of `(1/2, 1/3, 1/6)`. The file proves:
 
 - the rows are pairwise distinct (`RowSeparating`);
 - the prior pushforward map is **not** injective;
@@ -59,7 +60,8 @@ with the same output law.
 - `ChannelCapacity/NonDegeneracy.lean`: injective pushforward and row separation
 - `ChannelCapacity/StrictConcavity.lean`: strict concavity on probability measures
 - `ChannelCapacity/Capacity.lean`: capacity and uniqueness packaging
-- `ChannelCapacity/Counterexample.lean`: permutation-channel counterexample
+- `ChannelCapacity/Counterexample.lean`: permutation-channel counterexample, not re-exported by
+  `ChannelCapacity`
 
 ## Sources and precedents
 

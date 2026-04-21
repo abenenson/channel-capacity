@@ -8,10 +8,12 @@ import ChannelCapacity.ChainRule
 import ChannelCapacity.NonDegeneracy
 import ChannelCapacity.StrictConcavity
 import ChannelCapacity.Capacity
-import ChannelCapacity.Counterexample
 
 /-!
 # ChannelCapacity
 
-Top-level imports for the channel-capacity development.
+Top-level imports for the main channel-capacity development.
+
+The finite counterexample file is intentionally not re-exported here; import
+`ChannelCapacity.Counterexample` explicitly when needed.
 -/
