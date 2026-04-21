@@ -17,6 +17,23 @@ Concrete density-regularity hypotheses for discharging the generic capacity theo
 This module introduces the compact-Polish density class used by the discharged theorem program:
 rows admit a common reference density, the density is jointly continuous, and it is strictly
 positive everywhere.
+
+## WIP note
+
+Milestone 3 is blocked at the current abstraction boundary. The field
+`Kernel.WellConditionedForCapacity.hFiniteRefKL` quantifies over every reference measure `ν` that
+dominates the relevant rows. Under the concrete class in this file, we can control KL against the
+fixed dominating reference from the class, and against output marginals that are themselves
+equivalent to that reference. What does not follow from the present assumptions is finiteness
+against an arbitrary dominating `ν`: the class gives `ν₀ ≪ ν`, but not the extra integrability
+needed to control the Radon-Nikodym correction from `ν₀` to `ν`.
+
+Attempts made:
+- reduce the joint KL to a rowwise integral via `klDiv_compProd_right`
+- use compactness of `α × β` and continuity of the density to obtain a uniform bound on the
+  fixed-reference `klFun` integrand
+- inspect the Radon-Nikodym / chain-rule API to lift that bound to arbitrary dominating references;
+  this is where the missing control on the reference change appears
 -/
 
 open MeasureTheory
