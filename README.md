@@ -9,7 +9,9 @@ The library has two layers:
 - a broader **measure-theoretic packaging theorem** that isolates the abstract hypotheses needed
   for future upstream generalization.
 
-> **Status:** Lean `v4.29.1`, Mathlib only, zero `sorry`/`admit`/axiom, Mathlib-upstream candidate.
+> **Status:** Lean `v4.29.1`, Mathlib only, warning-free build, zero `sorry`/`admit`/axiom.
+> The finite theorem below is the current Mathlib-facing upstream candidate; the general theorem is
+> retained as a broader measure-theoretic companion result.
 
 ## Main objects
 
@@ -30,7 +32,7 @@ noncomputable def channelCapacity (k : Kernel α β) [IsMarkovKernel k] : ℝ
 ```lean
 theorem exists_unique_capacity_achieving_prior_of_finite
     {α β : Type*}
-    [Fintype α] [Fintype β]
+    [Fintype α] [Finite β]
     [MeasurableSpace α] [MeasurableSpace β]
     [MeasurableSingletonClass α] [MeasurableSingletonClass β]
     [Nonempty α]
