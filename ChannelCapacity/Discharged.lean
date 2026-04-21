@@ -5,6 +5,7 @@ Authors: Adam Benenson
 -/
 import ChannelCapacity.NonDegeneracy
 
+import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
 import Mathlib.MeasureTheory.Constructions.Polish.Basic
 import Mathlib.Probability.Kernel.WithDensity
 
@@ -63,6 +64,84 @@ theorem density_ennreal_pos (h : ContinuousPositiveDensity k ν) (a : α) (b : �
 theorem density_ennreal_ne_zero (h : ContinuousPositiveDensity k ν) (a : α) (b : β) :
     (h.density a b : ENNReal) ≠ 0 :=
   ne_of_gt (h.density_ennreal_pos a b)
+
+section OutputPrior
+
+variable [CompactSpace α] [PolishSpace α] [PolishSpace β] [BorelSpace α] [BorelSpace β]
+variable [OpensMeasurableSpace α] [OpensMeasurableSpace β] [IsFiniteMeasure ν]
+
+noncomputable def outputDensity (h : ContinuousPositiveDensity k ν) (p : ProbabilityMeasure α) :
+    β → ENNReal :=
+  fun b => ∫⁻ a, (h.density a b : ENNReal) ∂p.toMeasure
+
+omit [CompactSpace α] [BorelSpace α] [BorelSpace β] in
+theorem aemeasurable_outputDensity (h : ContinuousPositiveDensity k ν) (p : ProbabilityMeasure α) :
+    AEMeasurable (h.outputDensity p) ν := by
+  have hbase :
+      AEMeasurable
+        (Function.uncurry fun a b => (h.density a b : ENNReal))
+        (p.toMeasure.prod ν) := by
+    simpa [Function.uncurry] using (ENNReal.continuous_coe.comp h.continuous_density).aemeasurable
+  exact hbase.lintegral_prod_left (μ := p.toMeasure) (ν := ν)
+
+omit [CompactSpace α] [BorelSpace α] [BorelSpace β] in
+theorem outputPrior_eq_withDensity_outputDensity
+    (h : ContinuousPositiveDensity k ν) (p : ProbabilityMeasure α) :
+    (outputPrior k p).toMeasure = ν.withDensity (h.outputDensity p) := by
+  ext s hs
+  rw [outputPrior_toMeasure, Measure.bind_apply hs k.aemeasurable,
+    MeasureTheory.withDensity_apply _ hs]
+  simp_rw [h.row_eq_withDensity]
+  simp_rw [MeasureTheory.withDensity_apply _ hs]
+  have hbase :
+      AEMeasurable
+        (Function.uncurry fun a b => (h.density a b : ENNReal))
+        (p.toMeasure.prod (ν.restrict s)) := by
+    simpa [Function.uncurry] using (ENNReal.continuous_coe.comp h.continuous_density).aemeasurable
+  simpa [Function.uncurry] using
+    (lintegral_lintegral_swap (μ := p.toMeasure) (ν := ν.restrict s)
+      (f := fun a b => (h.density a b : ENNReal)) hbase)
+
+omit [PolishSpace α] [PolishSpace β] [BorelSpace α] [BorelSpace β]
+  [OpensMeasurableSpace α] [OpensMeasurableSpace β] [IsFiniteMeasure ν] in
+theorem outputDensity_pos (h : ContinuousPositiveDensity k ν) (p : ProbabilityMeasure α) (b : β) :
+    0 < h.outputDensity p b := by
+  letI : Nonempty α := p.nonempty
+  have hcont : Continuous fun a : α => h.density a b := by
+    have hpair : Continuous fun a : α => (a, b) := by
+      fun_prop
+    simpa [Function.uncurry] using h.continuous_density.comp hpair
+  obtain ⟨a0, -, ha0⟩ := IsCompact.exists_isMinOn (α := NNReal)
+    (β := α) isCompact_univ Set.univ_nonempty hcont.continuousOn
+  have ha0' : ∀ a : α, h.density a0 b ≤ h.density a b :=
+    isMinOn_univ_iff.mp ha0
+  have hle : ∀ a : α, (h.density a0 b : ENNReal) ≤ (h.density a b : ENNReal) := by
+    intro a
+    exact_mod_cast ha0' a
+  have hconst_le :
+      (h.density a0 b : ENNReal) ≤ h.outputDensity p b := by
+    calc
+      (h.density a0 b : ENNReal) = ∫⁻ a, (h.density a0 b : ENNReal) ∂p.toMeasure := by simp
+      _ ≤ ∫⁻ a, (h.density a b : ENNReal) ∂p.toMeasure := lintegral_mono hle
+      _ = h.outputDensity p b := rfl
+  exact lt_of_lt_of_le (ENNReal.coe_pos.mpr (h.density_pos a0 b)) hconst_le
+
+omit [BorelSpace α] [BorelSpace β] in
+theorem ae_row_absolutelyContinuous_outputPrior
+    (h : ContinuousPositiveDensity k ν) (p : ProbabilityMeasure α) :
+    ∀ᵐ a ∂p.toMeasure, k a ≪ (outputPrior k p).toMeasure := by
+  have hν_ac_out :
+      ν ≪ (outputPrior k p).toMeasure := by
+    have hν_ac_withDensity :
+        ν ≪ ν.withDensity (h.outputDensity p) :=
+      MeasureTheory.withDensity_absolutelyContinuous'
+        (h.aemeasurable_outputDensity p)
+        (Filter.Eventually.of_forall fun b => (h.outputDensity_pos p b).ne')
+    simpa [h.outputPrior_eq_withDensity_outputDensity p] using hν_ac_withDensity
+  exact Filter.Eventually.of_forall fun a =>
+    (h.row_absolutelyContinuous_ref a).trans hν_ac_out
+
+end OutputPrior
 
 end ContinuousPositiveDensity
 
