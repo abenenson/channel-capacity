@@ -142,6 +142,41 @@ noncomputable def conditionalEntropy (p : ProbabilityMeasure α) (k : Kernel α 
     [IsMarkovKernel k] : ℝ :=
   ∑ a, (p.toMeasure {a}).toReal * Kernel.rowEntropy k a
 
+omit [Fintype α] [MeasurableSingletonClass α] in
+/-- The KL divergence of a kernel row against counting measure is the usual finite entropy
+expression. -/
+theorem Kernel.toReal_klDiv_count_eq_card_sub_one_sub_rowEntropy
+    (k : Kernel α β) [IsMarkovKernel k] (a : α) :
+    (InformationTheory.klDiv (k a) Measure.count).toReal =
+      (Fintype.card β : ℝ) - 1 - Kernel.rowEntropy k a := by
+  simpa [Kernel.rowEntropy, Kernel.rowProbabilityMeasure] using
+    (toReal_klDiv_count (Kernel.rowProbabilityMeasure k a))
+
+/-- Averaging the row KL divergences against counting measure recovers the conditional entropy. -/
+theorem weighted_toReal_klDiv_count_eq_card_sub_one_sub_conditionalEntropy
+    (k : Kernel α β) [IsMarkovKernel k] (p : ProbabilityMeasure α) :
+    ∑ a, (p.toMeasure {a}).toReal * (InformationTheory.klDiv (k a) Measure.count).toReal =
+      (Fintype.card β : ℝ) - 1 - conditionalEntropy p k := by
+  have hprob := sum_toReal_singletonMass p
+  calc
+    ∑ a, (p.toMeasure {a}).toReal * (InformationTheory.klDiv (k a) Measure.count).toReal
+      = ∑ a, (p.toMeasure {a}).toReal *
+          ((Fintype.card β : ℝ) - 1 - Kernel.rowEntropy k a) := by
+            simp_rw [Kernel.toReal_klDiv_count_eq_card_sub_one_sub_rowEntropy]
+    _ = ∑ a,
+          ((p.toMeasure {a}).toReal * ((Fintype.card β : ℝ) - 1) -
+            (p.toMeasure {a}).toReal * Kernel.rowEntropy k a) := by
+          simp_rw [mul_sub]
+    _ = (∑ a, (p.toMeasure {a}).toReal * ((Fintype.card β : ℝ) - 1)) -
+          ∑ a, (p.toMeasure {a}).toReal * Kernel.rowEntropy k a := by
+          rw [Finset.sum_sub_distrib]
+    _ = (∑ a, (p.toMeasure {a}).toReal) * ((Fintype.card β : ℝ) - 1) -
+          conditionalEntropy p k := by
+          rw [Finset.sum_mul, conditionalEntropy]
+    _ = (Fintype.card β : ℝ) - 1 - conditionalEntropy p k := by
+          rw [hprob]
+          ring
+
 omit [Fintype α] in
 theorem convexCombination_toReal_apply (p q : ProbabilityMeasure α) (t : NNReal)
     (ht : t ≤ (1 : NNReal)) (a : α) :
@@ -324,46 +359,17 @@ theorem mutualInformation_eq_entropy_outputPrior_sub_conditionalEntropy
     simpa [mutualInformation, jointLaw_toMeasure, independentJointLaw_toMeasure,
       outputPrior_toMeasure]
       using h_chain_real'
-  have h_row_kl :
-      ∀ a : α,
-        (InformationTheory.klDiv (k a) Measure.count).toReal =
-          (Fintype.card β : ℝ) - 1 - Kernel.rowEntropy k a := by
-    intro a
-    simpa [Kernel.rowEntropy, Kernel.rowProbabilityMeasure] using
-      (toReal_klDiv_count (Kernel.rowProbabilityMeasure k a))
-  rw [toReal_joint_klDiv_count, toReal_klDiv_count] at h_chain_real
-  simp_rw [h_row_kl] at h_chain_real
-  rw [conditionalEntropy, ProbabilityMeasure.entropy]
-  rw [ProbabilityMeasure.entropy] at h_chain_real
-  simp_rw [mul_sub, mul_one] at h_chain_real
-  have hprob := sum_toReal_singletonMass p
-  have hcoeff :
-      ∑ x, ((p.toMeasure {x}).toReal * (Fintype.card β : ℝ) - (p.toMeasure {x}).toReal) =
-        (Fintype.card β : ℝ) - 1 := by
-    calc
-      ∑ x, ((p.toMeasure {x}).toReal * (Fintype.card β : ℝ) - (p.toMeasure {x}).toReal) =
-          (∑ x, (p.toMeasure {x}).toReal * (Fintype.card β : ℝ)) -
-            ∑ x, (p.toMeasure {x}).toReal := by
-              rw [Finset.sum_sub_distrib]
-      _ = (∑ x, (p.toMeasure {x}).toReal) * (Fintype.card β : ℝ) -
-            ∑ x, (p.toMeasure {x}).toReal := by
-              rw [Finset.sum_mul]
-      _ = 1 * (Fintype.card β : ℝ) - 1 := by rw [hprob]
-      _ = (Fintype.card β : ℝ) - 1 := by ring
-  have hsplit :
-      ∑ x, ((p.toMeasure {x}).toReal * (Fintype.card β : ℝ) - (p.toMeasure {x}).toReal -
-          (p.toMeasure {x}).toReal * Kernel.rowEntropy k x) =
-        ∑ x, ((p.toMeasure {x}).toReal * (Fintype.card β : ℝ) - (p.toMeasure {x}).toReal) -
-          ∑ x, (p.toMeasure {x}).toReal * Kernel.rowEntropy k x := by
-    rw [Finset.sum_sub_distrib]
-  rw [hsplit, hcoeff] at h_chain_real
-  ring_nf at h_chain_real
-  have h_target :
+  have h_output :
+      (InformationTheory.klDiv (outputPrior k p).toMeasure Measure.count).toReal =
+        (Fintype.card β : ℝ) - 1 - ProbabilityMeasure.entropy (outputPrior k p) := by
+    simpa [ProbabilityMeasure.entropy] using toReal_klDiv_count (outputPrior k p)
+  rw [toReal_joint_klDiv_count,
+    weighted_toReal_klDiv_count_eq_card_sub_one_sub_conditionalEntropy, h_output] at h_chain_real
+  have h_formula :
       mutualInformation p k =
-        ∑ a, Real.negMulLog ((outputPrior k p).toMeasure {a}).toReal -
-          ∑ a, (p.toMeasure {a}).toReal * Kernel.rowEntropy k a := by
-    linarith [h_chain_real]
-  simpa using h_target
+        ProbabilityMeasure.entropy (outputPrior k p) - conditionalEntropy p k := by
+    linarith
+  linarith
 
 theorem entropy_strictlyConcave (p q : ProbabilityMeasure α) (h_ne : p ≠ q)
     (t : NNReal) (ht_pos : 0 < t) (ht_lt_one : t < 1) :
@@ -427,25 +433,27 @@ theorem Kernel.injectivePriorPushforward_of_rowMatrixFullRank
   apply ProbabilityMeasure.toMeasure_injective
   apply Measure.ext_of_singleton
   intro a
-  have hweights :
-      (fun a' : α => (p.toMeasure {a'}).toReal - (q.toMeasure {a'}).toReal) = 0 := by
-    apply hRank
-    funext b
+  have hrowEq :
+      ∀ b : β,
+        ∑ a, ((p.toMeasure {a}).toReal - (q.toMeasure {a}).toReal) * (k a {b}).toReal = 0 := by
+    intro b
     have hb :
         ((outputPrior k p).toMeasure {b}).toReal = ((outputPrior k q).toMeasure {b}).toReal := by
       simpa [Kernel.priorPushforward] using
         congrArg (fun μ : ProbabilityMeasure β => ((μ.toMeasure {b}).toReal)) hpq
     rw [toReal_outputPrior_apply_singleton, toReal_outputPrior_apply_singleton] at hb
-    have hzero :
-        ∑ a, ((p.toMeasure {a}).toReal - (q.toMeasure {a}).toReal) * (k a {b}).toReal = 0 := by
-      simp_rw [sub_mul]
-      rw [Finset.sum_sub_distrib]
-      linarith
-    simpa using hzero
+    simp_rw [sub_mul]
+    rw [Finset.sum_sub_distrib]
+    exact sub_eq_zero.mpr hb
+  have hweights :
+      (fun a' : α => (p.toMeasure {a'}).toReal - (q.toMeasure {a'}).toReal) = 0 := by
+    apply hRank
+    funext b
+    simpa using hrowEq b
   have ha_toReal : (p.toMeasure {a}).toReal = (q.toMeasure {a}).toReal := by
     have ha_sub : (p.toMeasure {a}).toReal - (q.toMeasure {a}).toReal = 0 := by
       simpa using congrArg (fun w : α → ℝ => w a) hweights
-    linarith
+    exact sub_eq_zero.mp ha_sub
   exact (ENNReal.toReal_eq_toReal_iff' (measure_ne_top _ _) (measure_ne_top _ _)).mp ha_toReal
 
 omit [Fintype β] in
