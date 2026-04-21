@@ -20,6 +20,32 @@ Concrete density-regularity hypotheses for discharging the generic capacity theo
 This module introduces the compact-Polish density class used by the discharged theorem program:
 rows admit a common reference density, the density is jointly continuous, and it is strictly
 positive everywhere.
+
+## WIP note
+
+Milestones 1--4 are discharged, and the compactness half of milestone 5 is discharged via
+compactness of `ProbabilityMeasure α` on compact spaces. The remaining blocker is upper
+semicontinuity of `p ↦ mutualInformation p k` under weak convergence.
+
+Three proof routes were attempted:
+
+1. A fixed-reference decomposition
+   `mutualInformation p k = K_ref p - klDiv (outputPrior k p) ν`
+   using the chain-rule identity already available in `ChainRule.lean`.
+   This reduces the problem to continuity or lower semicontinuity of the output-relative-entropy
+   term, but still requires a continuity bridge for the output density as the prior varies.
+2. A parametric-integral route using
+   `MeasureTheory.continuous_parametric_integral_of_continuous`,
+   `ProbabilityMeasure.continuous_lintegral_continuousMap`, and
+   `ProbabilityMeasure.continuous_integral_continuousMap`.
+   This makes the rowwise reference term tractable, but does not by itself package continuity of
+   the averaged output density `b ↦ ∫ a, f a b ∂p`.
+3. A direct continuity proof for the output density in `(p, b)`, splitting
+   `|∫ f(·, b_n) ∂p_n - ∫ f(·, b) ∂p|` into a varying-integrand/fixed-measure term and a
+   fixed-integrand/varying-measure term, using compactness and uniform continuity of the joint
+   density on `α × β`.
+   This is mathematically the right route, but the current Lean gap is a clean API bridge that
+   turns that estimate into the continuity needed for the output-relative-entropy term.
 -/
 
 open MeasureTheory
