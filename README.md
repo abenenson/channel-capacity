@@ -3,7 +3,7 @@
 Lean 4 formalization of **Shannon capacity-achieving prior uniqueness** for a Markov kernel, with
 the correct non-degeneracy surface centered on injectivity of the prior-to-output map.
 
-> **Status:** Lean `v4.29.1`, Mathlib only, zero sorries intended, Mathlib-upstream candidate.
+> **Status:** Lean `v4.29.1`, Mathlib only, zero `sorry`/`admit`/axiom, Mathlib-upstream candidate.
 
 ## Main objects
 
@@ -23,17 +23,22 @@ noncomputable def channelCapacity (k : Kernel α β) [IsMarkovKernel k] : ℝ
 
 ```lean
 theorem exists_unique_capacity_achieving_prior
-    (k : Kernel α β) [IsMarkovKernel k] (h : k.InjectivePriorPushforward)
+    {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
+    [MeasurableSpace.CountableOrCountablyGenerated α β]
+    (k : Kernel α β) [IsMarkovKernel k]
+    (h : Kernel.InjectivePriorPushforward k)
+    (hWC : Kernel.WellConditionedForCapacity k)
     [TopologicalSpace (ProbabilityMeasure α)]
     (hNonempty : (Set.univ : Set (ProbabilityMeasure α)).Nonempty)
     (hCompact : IsCompact (Set.univ : Set (ProbabilityMeasure α)))
-    (hUsc : UpperSemicontinuous fun p : ProbabilityMeasure α => mutualInformation p k)
-    (hStrict : k.StrictlyConcaveMutualInformation h) :
+    (hUsc : UpperSemicontinuous fun p : ProbabilityMeasure α => mutualInformation p k) :
     ∃! p : ProbabilityMeasure α, mutualInformation p k = channelCapacity k
 ```
 
-The topological existence argument is fully packaged. The strict-concavity hypothesis is expressed
-on the simplex of probability measures via explicit convex combinations.
+The topological existence argument is packaged separately. Uniqueness is derived internally from
+`InjectivePriorPushforward` together with the measure-theoretic bundle
+`WellConditionedForCapacity`, so no standalone strict-concavity hypothesis appears in the final
+statement.
 
 ## Counterexample
 
@@ -44,8 +49,9 @@ are the six permutations of `(1/2, 1/3, 1/6)`. The file proves:
 - the prior pushforward map is **not** injective;
 - two distinct priors have the same induced output law.
 
-This records the v2 correction: `RowSeparating` is weaker than the right hypothesis
-`InjectivePriorPushforward`.
+The point of the example is that `RowSeparating` is weaker than
+`InjectivePriorPushforward`: pairwise-distinct rows do not by themselves rule out distinct priors
+with the same output law.
 
 ## File layout
 
@@ -53,17 +59,18 @@ This records the v2 correction: `RowSeparating` is weaker than the right hypothe
 - `ChannelCapacity/NonDegeneracy.lean`: injective pushforward and row separation
 - `ChannelCapacity/StrictConcavity.lean`: strict concavity on probability measures
 - `ChannelCapacity/Capacity.lean`: capacity and uniqueness packaging
-- `ChannelCapacity/Counterexample.lean`: permutation-channel counterexample and toy discharge
+- `ChannelCapacity/Counterexample.lean`: permutation-channel counterexample
 
 ## Sources and precedents
 
-- Mathlib:
-  `ProbabilityTheory.Kernel`, `Measure.compProd`, `InformationTheory.klDiv`,
+- Mathlib kernel, product-measure, KL-divergence, and semicontinuity libraries; in particular the
+  APIs around `ProbabilityTheory.Kernel`, `Measure.compProd`, `InformationTheory.klDiv`, and
   `UpperSemicontinuousOn.exists_isMaxOn`
-- OmegaFlow:
-  the probability-measure convex combination interface and compactness/uniqueness packaging were
-  rewritten here in a smaller Mathlib-idiomatic form, following the same overall proof pattern
-  while avoiding the PathSpace/kernel-category abstraction layer
+- C. E. Shannon, "A Mathematical Theory of Communication" (1948)
+- I. M. Gel'fand and A. M. Yaglom, work on mutual information for general random objects
+- S. Arimoto, "An Algorithm for Computing the Capacity of Arbitrary Discrete Memoryless Channels"
+  (1972)
+- R. E. Blahut, "Computation of Channel Capacity and Rate-Distortion Functions" (1972)
 
 ## License
 
