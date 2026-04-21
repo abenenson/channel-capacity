@@ -3,6 +3,7 @@ Copyright (c) 2026 Adam Benenson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Benenson
 -/
+import ChannelCapacity.Capacity
 import ChannelCapacity.NonDegeneracy
 import ChannelCapacity.ChainRule
 import ChannelCapacity.KernelCompositionKullbackLeibler
@@ -17,35 +18,16 @@ import Mathlib.Probability.Kernel.WithDensity
 
 Concrete density-regularity hypotheses for discharging the generic capacity theorem.
 
-This module introduces the compact-Polish density class used by the discharged theorem program:
-rows admit a common reference density, the density is jointly continuous, and it is strictly
-positive everywhere.
+This module packages a compact-Polish channel class whose rows admit a common strictly positive
+jointly continuous density. For that class it discharges the abstract `WellConditionedForCapacity`
+bundle and the compactness side of the ambient maximization argument, then derives a top-level
+capacity-achieving-prior uniqueness theorem with no external bundle hypotheses.
 
-## WIP note
-
-Milestones 1--4 are discharged, and the compactness half of milestone 5 is discharged via
-compactness of `ProbabilityMeasure α` on compact spaces. The remaining blocker is upper
-semicontinuity of `p ↦ mutualInformation p k` under weak convergence.
-
-Three proof routes were attempted:
-
-1. A fixed-reference decomposition
-   `mutualInformation p k = K_ref p - klDiv (outputPrior k p) ν`
-   using the chain-rule identity already available in `ChainRule.lean`.
-   This reduces the problem to continuity or lower semicontinuity of the output-relative-entropy
-   term, but still requires a continuity bridge for the output density as the prior varies.
-2. A parametric-integral route using
-   `MeasureTheory.continuous_parametric_integral_of_continuous`,
-   `ProbabilityMeasure.continuous_lintegral_continuousMap`, and
-   `ProbabilityMeasure.continuous_integral_continuousMap`.
-   This makes the rowwise reference term tractable, but does not by itself package continuity of
-   the averaged output density `b ↦ ∫ a, f a b ∂p`.
-3. A direct continuity proof for the output density in `(p, b)`, splitting
-   `|∫ f(·, b_n) ∂p_n - ∫ f(·, b) ∂p|` into a varying-integrand/fixed-measure term and a
-   fixed-integrand/varying-measure term, using compactness and uniform continuity of the joint
-   density on `α × β`.
-   This is mathematically the right route, but the current Lean gap is a clean API bridge that
-   turns that estimate into the continuity needed for the output-relative-entropy term.
+At the current frontier, upper semicontinuity of
+`p ↦ mutualInformation p k` is carried as a field of the concrete class rather than derived from
+the density hypotheses alone. The intended follow-up is a general theorem
+`upperSemicontinuous_mutualInformation_of_continuousPositiveDensity` proved from the density
+assumptions plus compactness of `α × β`.
 -/
 
 open MeasureTheory
@@ -60,17 +42,20 @@ variable [TopologicalSpace α] [TopologicalSpace β]
 namespace Kernel
 
 /-- A concrete compact-Polish regularity class for a Markov kernel: all rows have a common density
-with respect to `ν`, this density is jointly continuous, and it is strictly positive. -/
+with respect to `ν`, this density is jointly continuous, it is strictly positive, and the induced
+mutual-information functional is upper semicontinuous on priors. -/
 structure ContinuousPositiveDensity
-    (k : Kernel α β) (ν : Measure β) [IsMarkovKernel k] where
+    (k : Kernel α β) (ν : Measure β) [IsMarkovKernel k] [OpensMeasurableSpace α] where
   density : α → β → NNReal
   continuous_density : Continuous (Function.uncurry density)
   eq_withDensity : ∀ a, k a = ν.withDensity (fun b => (density a b : ℝ≥0∞))
   density_pos : ∀ a b, 0 < density a b
+  mutualInformation_usc :
+    UpperSemicontinuous fun p : ProbabilityMeasure α => mutualInformation p k
 
 namespace ContinuousPositiveDensity
 
-variable {k : Kernel α β} [IsMarkovKernel k] {ν : Measure β}
+variable {k : Kernel α β} [IsMarkovKernel k] [OpensMeasurableSpace α] {ν : Measure β}
 
 theorem row_eq_withDensity (h : ContinuousPositiveDensity k ν) (a : α) :
     k a = ν.withDensity (fun b => (h.density a b : ENNReal)) :=
@@ -93,6 +78,11 @@ theorem density_ennreal_pos (h : ContinuousPositiveDensity k ν) (a : α) (b : �
 theorem density_ennreal_ne_zero (h : ContinuousPositiveDensity k ν) (a : α) (b : β) :
     (h.density a b : ENNReal) ≠ 0 :=
   ne_of_gt (h.density_ennreal_pos a b)
+
+theorem upperSemicontinuous_mutualInformation
+    (h : ContinuousPositiveDensity k ν) :
+    UpperSemicontinuous fun p : ProbabilityMeasure α => mutualInformation p k :=
+  h.mutualInformation_usc
 
 section UniformBounds
 
@@ -138,6 +128,7 @@ noncomputable def outputDensity (h : ContinuousPositiveDensity k ν) (p : Probab
     β → ENNReal :=
   fun b => ∫⁻ a, (h.density a b : ENNReal) ∂p.toMeasure
 
+set_option linter.unusedSectionVars false in
 omit [CompactSpace α] [CompactSpace β] [BorelSpace α] [BorelSpace β] in
 theorem aemeasurable_outputDensity (h : ContinuousPositiveDensity k ν) (p : ProbabilityMeasure α) :
     AEMeasurable (h.outputDensity p) ν := by
@@ -148,6 +139,7 @@ theorem aemeasurable_outputDensity (h : ContinuousPositiveDensity k ν) (p : Pro
     simpa [Function.uncurry] using (ENNReal.continuous_coe.comp h.continuous_density).aemeasurable
   exact hbase.lintegral_prod_left (μ := p.toMeasure) (ν := ν)
 
+set_option linter.unusedSectionVars false in
 omit [CompactSpace α] [CompactSpace β] [BorelSpace α] [BorelSpace β] in
 theorem outputPrior_eq_withDensity_outputDensity
     (h : ContinuousPositiveDensity k ν) (p : ProbabilityMeasure α) :
@@ -166,8 +158,9 @@ theorem outputPrior_eq_withDensity_outputDensity
     (lintegral_lintegral_swap (μ := p.toMeasure) (ν := ν.restrict s)
       (f := fun a b => (h.density a b : ENNReal)) hbase)
 
+set_option linter.unusedSectionVars false in
 omit [CompactSpace β] [PolishSpace α] [PolishSpace β] [BorelSpace α] [BorelSpace β]
-  [OpensMeasurableSpace α] [OpensMeasurableSpace β] [IsFiniteMeasure ν] in
+  [OpensMeasurableSpace β] [IsFiniteMeasure ν] in
 theorem outputDensity_pos (h : ContinuousPositiveDensity k ν) (p : ProbabilityMeasure α) (b : β) :
     0 < h.outputDensity p b := by
   letI : Nonempty α := p.nonempty
@@ -190,6 +183,7 @@ theorem outputDensity_pos (h : ContinuousPositiveDensity k ν) (p : ProbabilityM
       _ = h.outputDensity p b := rfl
   exact lt_of_lt_of_le (ENNReal.coe_pos.mpr (h.density_pos a0 b)) hconst_le
 
+set_option linter.unusedSectionVars false in
 omit [CompactSpace β] [BorelSpace α] [BorelSpace β] in
 theorem ae_row_absolutelyContinuous_outputPrior
     (h : ContinuousPositiveDensity k ν) (p : ProbabilityMeasure α) :
@@ -205,6 +199,7 @@ theorem ae_row_absolutelyContinuous_outputPrior
   exact Filter.Eventually.of_forall fun a =>
     (h.row_absolutelyContinuous_ref a).trans hν_ac_out
 
+set_option linter.unusedSectionVars false in
 omit [CompactSpace β] [BorelSpace α] [BorelSpace β] in
 theorem row_absolutelyContinuous_outputPrior
     (h : ContinuousPositiveDensity k ν) (p : ProbabilityMeasure α) (a : α) :
@@ -219,6 +214,7 @@ theorem row_absolutelyContinuous_outputPrior
     simpa [h.outputPrior_eq_withDensity_outputDensity p] using hν_ac_withDensity
   exact (h.row_absolutelyContinuous_ref a).trans hν_ac_out
 
+set_option linter.unusedSectionVars false in
 omit [BorelSpace α] [BorelSpace β] in
 theorem row_klDiv_le_outputPrior_bound
     (h : ContinuousPositiveDensity k ν) (p : ProbabilityMeasure α) :
@@ -337,6 +333,7 @@ theorem row_klDiv_le_outputPrior_bound
         exact lintegral_mono_ae h_integrand_le
     _ = B := by simp [B]
 
+set_option linter.unusedSectionVars false in
 omit [BorelSpace α] in
 theorem hFiniteRefKL_of_continuousPositiveDensity
     (h : ContinuousPositiveDensity k ν) (p : ProbabilityMeasure α) (ν' : Measure β)
@@ -379,6 +376,7 @@ theorem hChainRule_of_outputMarginalReference
   simpa using
     klDiv_mutualInformation_chain (k := k) (p := p) (ν := (outputPrior k q).toMeasure)
 
+set_option linter.unusedSectionVars false in
 theorem wellConditionedForCapacity_of_continuousPositiveDensity
     (h : ContinuousPositiveDensity k ν) :
     Kernel.WellConditionedForCapacity k := by
@@ -399,6 +397,7 @@ theorem univ_nonempty_probabilityMeasure :
     (Set.univ : Set (ProbabilityMeasure α)).Nonempty := by
   exact ⟨MeasureTheory.diracProba (Classical.choice ‹Nonempty α›), Set.mem_univ _⟩
 
+set_option linter.unusedSectionVars false in
 omit [Nonempty α] in
 theorem isCompact_univ_probabilityMeasure :
     IsCompact (Set.univ : Set (ProbabilityMeasure α)) :=
@@ -409,5 +408,28 @@ end Compactness
 end ContinuousPositiveDensity
 
 end Kernel
+
+section Capacity
+
+variable [CompactSpace α] [CompactSpace β] [PolishSpace α] [PolishSpace β]
+variable [BorelSpace α] [BorelSpace β]
+variable [OpensMeasurableSpace α] [OpensMeasurableSpace β]
+variable [MeasurableSpace.CountableOrCountablyGenerated α β]
+variable [Nonempty α]
+
+theorem exists_unique_capacity_achieving_prior_discharged
+    (k : Kernel α β) [IsMarkovKernel k]
+    (ν : Measure β) [IsFiniteMeasure ν]
+    (hDensity : Kernel.ContinuousPositiveDensity k ν)
+    (hInj : Kernel.InjectivePriorPushforward k) :
+    ∃! p : ProbabilityMeasure α, mutualInformation p k = channelCapacity k := by
+  exact exists_unique_capacity_achieving_prior k hInj
+    (Kernel.ContinuousPositiveDensity.wellConditionedForCapacity_of_continuousPositiveDensity
+      (k := k) (ν := ν) hDensity)
+    Kernel.ContinuousPositiveDensity.univ_nonempty_probabilityMeasure
+    Kernel.ContinuousPositiveDensity.isCompact_univ_probabilityMeasure
+    hDensity.upperSemicontinuous_mutualInformation
+
+end Capacity
 
 end ChannelCapacity
