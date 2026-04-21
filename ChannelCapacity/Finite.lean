@@ -11,6 +11,7 @@ import Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym
 import Mathlib.MeasureTheory.Measure.Prokhorov
 import Mathlib.Probability.ProbabilityMassFunction.Basic
 import Mathlib.Topology.ContinuousMap.Bounded.Basic
+import Mathlib.Analysis.SpecialFunctions.Log.NegMulLog
 
 /-!
 # ChannelCapacity.Finite
@@ -141,6 +142,34 @@ noncomputable def conditionalEntropy (p : ProbabilityMeasure α) (k : Kernel α 
     [IsMarkovKernel k] : ℝ :=
   ∑ a, (p.toMeasure {a}).toReal * Kernel.rowEntropy k a
 
+omit [Fintype α] in
+theorem convexCombination_toReal_apply (p q : ProbabilityMeasure α) (t : NNReal)
+    (ht : t ≤ (1 : NNReal)) (a : α) :
+    ((ProbabilityMeasure.convexCombination p q t ht).toMeasure {a}).toReal =
+      (t : ℝ) * (p.toMeasure {a}).toReal + (1 - (t : ℝ)) * (q.toMeasure {a}).toReal := by
+  rw [ProbabilityMeasure.convexCombination_apply _ _ _ _ (measurableSet_singleton a)]
+  have hp_fin : p.toMeasure {a} ≠ ∞ := measure_ne_top _ _
+  have hq_fin : q.toMeasure {a} ≠ ∞ := measure_ne_top _ _
+  have hleft_fin : ((t : ENNReal) * p.toMeasure {a}) ≠ ∞ := ENNReal.mul_ne_top (by simp) hp_fin
+  have hright_fin :
+      ((((1 : NNReal) - t : NNReal) : ENNReal) * q.toMeasure {a}) ≠ ∞ :=
+    ENNReal.mul_ne_top (by simp) hq_fin
+  rw [ENNReal.toReal_add hleft_fin hright_fin, ENNReal.toReal_mul, ENNReal.toReal_mul]
+  change (t : ℝ) * (p.toMeasure {a}).toReal + (((1 : NNReal) - t : NNReal) : ℝ) *
+      (q.toMeasure {a}).toReal =
+    (t : ℝ) * (p.toMeasure {a}).toReal + (1 - (t : ℝ)) * (q.toMeasure {a}).toReal
+  rw [NNReal.coe_sub ht]
+  simp
+
+omit [MeasurableSingletonClass β] in
+theorem conditionalEntropy_convexCombination (p q : ProbabilityMeasure α) (k : Kernel α β)
+    [IsMarkovKernel k] (t : NNReal) (ht : t ≤ (1 : NNReal)) :
+    conditionalEntropy (ProbabilityMeasure.convexCombination p q t ht) k =
+      (t : ℝ) * conditionalEntropy p k + (1 - (t : ℝ)) * conditionalEntropy q k := by
+  unfold conditionalEntropy
+  simp_rw [convexCombination_toReal_apply, add_mul, mul_assoc]
+  rw [Finset.sum_add_distrib, ← Finset.mul_sum, ← Finset.mul_sum]
+
 omit [Fintype α] [MeasurableSingletonClass α] in
 theorem absolutelyContinuous_count (μ : ProbabilityMeasure α) [Countable α] :
     μ.toMeasure ≪ Measure.count := by
@@ -162,6 +191,17 @@ theorem outputPrior_apply_singleton (k : Kernel α β) [IsMarkovKernel k]
           simp [Measure.smul_apply]
     _ = ∑ a, p.toMeasure {a} * k a {b} := by
           rw [tsum_fintype]
+
+omit [Fintype β] in
+theorem toReal_outputPrior_apply_singleton (k : Kernel α β) [IsMarkovKernel k]
+    (p : ProbabilityMeasure α) (b : β) :
+    ((outputPrior k p).toMeasure {b}).toReal =
+      ∑ a, (p.toMeasure {a}).toReal * (k a {b}).toReal := by
+  rw [outputPrior_apply_singleton]
+  rw [ENNReal.toReal_sum]
+  · simp_rw [ENNReal.toReal_mul]
+  · intro a _ha
+    exact ENNReal.mul_ne_top (measure_ne_top _ _) (measure_ne_top _ _)
 
 omit [Fintype β] in
 theorem klDiv_count_ne_top (μ : ProbabilityMeasure β) [Finite β] :
@@ -324,6 +364,239 @@ theorem mutualInformation_eq_entropy_outputPrior_sub_conditionalEntropy
           ∑ a, (p.toMeasure {a}).toReal * Kernel.rowEntropy k a := by
     linarith [h_chain_real]
   simpa using h_target
+
+theorem entropy_strictlyConcave (p q : ProbabilityMeasure α) (h_ne : p ≠ q)
+    (t : NNReal) (ht_pos : 0 < t) (ht_lt_one : t < 1) :
+    ProbabilityMeasure.entropy (ProbabilityMeasure.convexCombination p q t (le_of_lt ht_lt_one)) >
+      (t : ℝ) * ProbabilityMeasure.entropy p + (1 - (t : ℝ)) * ProbabilityMeasure.entropy q := by
+  have hneq_coord : ∃ a : α, (p.toMeasure {a}).toReal ≠ (q.toMeasure {a}).toReal := by
+    by_contra h_eq
+    have h_eq' : ∀ a : α, (p.toMeasure {a}).toReal = (q.toMeasure {a}).toReal := by
+      simpa using not_exists.mp h_eq
+    apply h_ne
+    apply ProbabilityMeasure.toMeasure_injective
+    apply Measure.ext_of_singleton
+    intro a
+    exact (ENNReal.toReal_eq_toReal_iff' (measure_ne_top _ _) (measure_ne_top _ _)).mp (h_eq' a)
+  obtain ⟨a0, ha0⟩ := hneq_coord
+  have ht_pos' : 0 < (t : ℝ) := by exact_mod_cast ht_pos
+  have h1mt_pos : 0 < 1 - (t : ℝ) := by
+    linarith [show (t : ℝ) < 1 by exact_mod_cast ht_lt_one]
+  have hle :
+      ∀ a : α,
+        (t : ℝ) * Real.negMulLog ((p.toMeasure {a}).toReal) +
+            (1 - (t : ℝ)) * Real.negMulLog ((q.toMeasure {a}).toReal) ≤
+          Real.negMulLog (((ProbabilityMeasure.convexCombination p q t
+            (le_of_lt ht_lt_one)).toMeasure {a}).toReal) := by
+    intro a
+    rw [convexCombination_toReal_apply]
+    simpa [add_comm, add_left_comm, add_assoc, mul_comm, mul_left_comm, mul_assoc] using
+      (Real.concaveOn_negMulLog.2
+        (ENNReal.toReal_nonneg : (p.toMeasure {a}).toReal ∈ Set.Ici (0 : ℝ))
+        (ENNReal.toReal_nonneg : (q.toMeasure {a}).toReal ∈ Set.Ici (0 : ℝ))
+        (show 0 ≤ (t : ℝ) by exact_mod_cast (le_of_lt ht_pos))
+        (show 0 ≤ 1 - (t : ℝ) by linarith [show (t : ℝ) < 1 by exact_mod_cast ht_lt_one])
+        (by ring : (t : ℝ) + (1 - (t : ℝ)) = 1))
+  have hlt :
+      (t : ℝ) * Real.negMulLog ((p.toMeasure {a0}).toReal) +
+          (1 - (t : ℝ)) * Real.negMulLog ((q.toMeasure {a0}).toReal) <
+        Real.negMulLog (((ProbabilityMeasure.convexCombination p q t
+          (le_of_lt ht_lt_one)).toMeasure {a0}).toReal) := by
+    rw [convexCombination_toReal_apply]
+    simpa [add_comm, add_left_comm, add_assoc, mul_comm, mul_left_comm, mul_assoc] using
+      (Real.strictConcaveOn_negMulLog.2
+        (ENNReal.toReal_nonneg : (p.toMeasure {a0}).toReal ∈ Set.Ici (0 : ℝ))
+        (ENNReal.toReal_nonneg : (q.toMeasure {a0}).toReal ∈ Set.Ici (0 : ℝ))
+        ha0 ht_pos' h1mt_pos
+        (by ring : (t : ℝ) + (1 - (t : ℝ)) = 1))
+  have hweighted :
+      (t : ℝ) * ProbabilityMeasure.entropy p + (1 - (t : ℝ)) * ProbabilityMeasure.entropy q =
+        ∑ a,
+          ((t : ℝ) * Real.negMulLog ((p.toMeasure {a}).toReal) +
+            (1 - (t : ℝ)) * Real.negMulLog ((q.toMeasure {a}).toReal)) := by
+    rw [ProbabilityMeasure.entropy, ProbabilityMeasure.entropy, Finset.mul_sum, Finset.mul_sum,
+      ← Finset.sum_add_distrib]
+  rw [ProbabilityMeasure.entropy, hweighted]
+  simpa [gt_iff_lt] using Finset.sum_lt_sum (fun a _ha => hle a) ⟨a0, Finset.mem_univ _, hlt⟩
+
+omit [Fintype β] in
+theorem Kernel.injectivePriorPushforward_of_rowMatrixFullRank
+    (k : Kernel α β) [IsMarkovKernel k] (hRank : ChannelCapacity.Kernel.RowMatrixFullRank k) :
+    Kernel.InjectivePriorPushforward k := by
+  intro p q hpq
+  apply ProbabilityMeasure.toMeasure_injective
+  apply Measure.ext_of_singleton
+  intro a
+  have hweights :
+      (fun a' : α => (p.toMeasure {a'}).toReal - (q.toMeasure {a'}).toReal) = 0 := by
+    apply hRank
+    funext b
+    have hb :
+        ((outputPrior k p).toMeasure {b}).toReal = ((outputPrior k q).toMeasure {b}).toReal := by
+      simpa [Kernel.priorPushforward] using
+        congrArg (fun μ : ProbabilityMeasure β => ((μ.toMeasure {b}).toReal)) hpq
+    rw [toReal_outputPrior_apply_singleton, toReal_outputPrior_apply_singleton] at hb
+    have hzero :
+        ∑ a, ((p.toMeasure {a}).toReal - (q.toMeasure {a}).toReal) * (k a {b}).toReal = 0 := by
+      simp_rw [sub_mul]
+      rw [Finset.sum_sub_distrib]
+      linarith
+    simpa using hzero
+  have ha_toReal : (p.toMeasure {a}).toReal = (q.toMeasure {a}).toReal := by
+    have ha_sub : (p.toMeasure {a}).toReal - (q.toMeasure {a}).toReal = 0 := by
+      simpa using congrArg (fun w : α → ℝ => w a) hweights
+    linarith
+  exact (ENNReal.toReal_eq_toReal_iff' (measure_ne_top _ _) (measure_ne_top _ _)).mp ha_toReal
+
+omit [Fintype β] in
+theorem Kernel.mutualInformation_strictlyConcave_of_rowMatrixFullRank [Finite β]
+    (k : Kernel α β) [IsMarkovKernel k] (hRank : ChannelCapacity.Kernel.RowMatrixFullRank k) :
+    ProbabilityMeasure.StrictlyConcave (fun p : ProbabilityMeasure α => mutualInformation p k) := by
+  let _instFintypeβ : Fintype β := Fintype.ofFinite β
+  intro p q h_ne t ht_pos ht_lt_one
+  have hPush : Kernel.InjectivePriorPushforward k :=
+    Kernel.injectivePriorPushforward_of_rowMatrixFullRank k hRank
+  have hOut_ne : outputPrior k p ≠ outputPrior k q := by
+    intro hEq
+    exact h_ne (hPush hEq)
+  have hEntropy :
+      ProbabilityMeasure.entropy
+          (ProbabilityMeasure.convexCombination (outputPrior k p) (outputPrior k q) t
+            (le_of_lt ht_lt_one)) >
+        (t : ℝ) * ProbabilityMeasure.entropy (outputPrior k p) +
+          (1 - (t : ℝ)) * ProbabilityMeasure.entropy (outputPrior k q) :=
+    entropy_strictlyConcave (outputPrior k p) (outputPrior k q) hOut_ne t ht_pos ht_lt_one
+  calc
+    mutualInformation (ProbabilityMeasure.convexCombination p q t (le_of_lt ht_lt_one)) k =
+        ProbabilityMeasure.entropy
+            (ProbabilityMeasure.convexCombination (outputPrior k p) (outputPrior k q) t
+              (le_of_lt ht_lt_one)) -
+          ((t : ℝ) * conditionalEntropy p k + (1 - (t : ℝ)) * conditionalEntropy q k) := by
+            rw [mutualInformation_eq_entropy_outputPrior_sub_conditionalEntropy]
+            rw [conditionalEntropy_convexCombination]
+            simpa [Kernel.priorPushforward] using
+              congrArg ProbabilityMeasure.entropy
+                (Kernel.priorPushforward_convexCombination k p q t (le_of_lt ht_lt_one))
+    _ > ((t : ℝ) * ProbabilityMeasure.entropy (outputPrior k p) +
+            (1 - (t : ℝ)) * ProbabilityMeasure.entropy (outputPrior k q)) -
+          ((t : ℝ) * conditionalEntropy p k + (1 - (t : ℝ)) * conditionalEntropy q k) := by
+            gcongr
+    _ = (t : ℝ) * mutualInformation p k + (1 - (t : ℝ)) * mutualInformation q k := by
+          rw [mutualInformation_eq_entropy_outputPrior_sub_conditionalEntropy,
+            mutualInformation_eq_entropy_outputPrior_sub_conditionalEntropy]
+          ring
+
+section FiniteWeakTopology
+
+variable [TopologicalSpace α] [TopologicalSpace β]
+  [DiscreteTopology α] [DiscreteTopology β]
+  [BorelSpace α] [BorelSpace β]
+  [CompactSpace α] [CompactSpace β]
+
+noncomputable def singletonIndicatorContinuousMap (a : α) : C(α, ℝ) :=
+  ⟨({a} : Set α).indicator (fun _ => (1 : ℝ)), continuous_of_discreteTopology⟩
+
+omit [Fintype α] in
+theorem continuous_toReal_apply_singleton (a : α) :
+    Continuous fun p : ProbabilityMeasure α => (p.toMeasure {a}).toReal := by
+  let f : C(α, ℝ) := singletonIndicatorContinuousMap a
+  simpa [f, singletonIndicatorContinuousMap, measureReal_def, integral_indicator_one] using
+    (ProbabilityMeasure.continuous_integral_continuousMap f)
+
+theorem continuous_entropy :
+    Continuous fun p : ProbabilityMeasure α => ProbabilityMeasure.entropy p := by
+  simpa [ProbabilityMeasure.entropy] using
+    (continuous_finset_sum (s := Finset.univ) fun a _ha =>
+      Real.continuous_negMulLog.comp (continuous_toReal_apply_singleton a))
+
+omit [Fintype α] [Fintype β] [TopologicalSpace β] [DiscreteTopology β] [BorelSpace β]
+  [CompactSpace β] in
+theorem continuous_outputPrior_toReal_apply_singleton [Finite α]
+    (k : Kernel α β) [IsMarkovKernel k] (b : β) :
+    Continuous fun p : ProbabilityMeasure α => ((outputPrior k p).toMeasure {b}).toReal := by
+  let _instFintypeα : Fintype α := Fintype.ofFinite α
+  have hsum :
+      Continuous fun p : ProbabilityMeasure α =>
+        ∑ a, (p.toMeasure {a}).toReal * (k a {b}).toReal :=
+    continuous_finset_sum (s := (Finset.univ : Finset α)) fun a _ha =>
+      (continuous_toReal_apply_singleton a).mul continuous_const
+  convert hsum using 1
+  ext p
+  exact toReal_outputPrior_apply_singleton k p b
+
+omit [Fintype α] [TopologicalSpace β] [DiscreteTopology β] [BorelSpace β] [CompactSpace β] in
+theorem continuous_outputEntropy [Finite α] (k : Kernel α β) [IsMarkovKernel k] :
+    Continuous fun p : ProbabilityMeasure α => ProbabilityMeasure.entropy (outputPrior k p) := by
+  let _instFintypeα : Fintype α := Fintype.ofFinite α
+  simpa [ProbabilityMeasure.entropy] using
+    (continuous_finset_sum (s := (Finset.univ : Finset β)) fun b _hb =>
+      Real.continuous_negMulLog.comp (continuous_outputPrior_toReal_apply_singleton k b))
+
+omit [MeasurableSingletonClass β] [TopologicalSpace β] [DiscreteTopology β] [BorelSpace β]
+  [CompactSpace β] in
+theorem continuous_conditionalEntropy (k : Kernel α β) [IsMarkovKernel k] :
+    Continuous fun p : ProbabilityMeasure α => conditionalEntropy p k := by
+  simpa [conditionalEntropy] using
+    (continuous_finset_sum (s := (Finset.univ : Finset α)) fun a _ha =>
+      (continuous_toReal_apply_singleton a).mul continuous_const)
+
+omit [Fintype α] [Fintype β] [TopologicalSpace β] [DiscreteTopology β] [BorelSpace β]
+  [CompactSpace β] in
+theorem continuous_mutualInformation_of_finite [Finite α] [Finite β]
+    (k : Kernel α β) [IsMarkovKernel k] :
+    Continuous fun p : ProbabilityMeasure α => mutualInformation p k := by
+  let _instFintypeα : Fintype α := Fintype.ofFinite α
+  let _instFintypeβ : Fintype β := Fintype.ofFinite β
+  convert (continuous_outputEntropy k).sub (continuous_conditionalEntropy k) using 1
+  ext p
+  exact mutualInformation_eq_entropy_outputPrior_sub_conditionalEntropy k p
+
+end FiniteWeakTopology
+
+section
+
+omit [Fintype β] in
+/-- Finite-alphabet capacity theorem with all hypotheses discharged internally. The general
+measure-theoretic theorem remains available separately; this theorem is the concrete upstream-ready
+specialization using the canonical weak topology on probability measures over finite discrete
+alphabets. -/
+theorem exists_unique_capacity_achieving_prior_of_finite [Finite β]
+    [Nonempty α] (k : Kernel α β) [IsMarkovKernel k]
+    (hRank : ChannelCapacity.Kernel.RowMatrixFullRank k) :
+    ∃! p : ProbabilityMeasure α, mutualInformation p k = channelCapacity k := by
+  let _instFintypeβ : Fintype β := Fintype.ofFinite β
+  let _ : TopologicalSpace α := ⊥
+  let _ : TopologicalSpace β := ⊥
+  let _ : DiscreteTopology α := ⟨rfl⟩
+  let _ : DiscreteTopology β := ⟨rfl⟩
+  let _ : T2Space α := by infer_instance
+  let _ : T2Space β := by infer_instance
+  let _ : BorelSpace α := by infer_instance
+  let _ : BorelSpace β := by infer_instance
+  let _ : CompactSpace α := Finite.compactSpace
+  let _ : CompactSpace β := Finite.compactSpace
+  have hcont : Continuous fun p : ProbabilityMeasure α => mutualInformation p k :=
+    continuous_mutualInformation_of_finite k
+  have hNonempty : (Set.univ : Set (ProbabilityMeasure α)).Nonempty := by
+    refine ⟨MeasureTheory.diracProba (Classical.choice ‹Nonempty α›), by simp⟩
+  obtain ⟨pMax, -, hpMax⟩ := IsCompact.exists_isMaxOn (α := ℝ)
+    (β := ProbabilityMeasure α) isCompact_univ hNonempty hcont.continuousOn
+  refine ⟨pMax, (channelCapacity_eq_of_isMaxOn_univ k hpMax).symm, ?_⟩
+  intro q hq
+  have hpMax' : ∀ p : ProbabilityMeasure α, mutualInformation p k ≤ mutualInformation pMax k :=
+    isMaxOn_univ_iff.mp hpMax
+  have hqMax : IsMaxOn (fun p : ProbabilityMeasure α => mutualInformation p k) Set.univ q := by
+    apply isMaxOn_univ_iff.mpr
+    intro p
+    calc
+      mutualInformation p k ≤ mutualInformation pMax k := hpMax' p
+      _ = channelCapacity k := (channelCapacity_eq_of_isMaxOn_univ k hpMax).symm
+      _ = mutualInformation q k := hq.symm
+  exact ProbabilityMeasure.eq_of_isMaxOn_univ_of_strictlyConcave
+    (p := pMax) (q := q)
+    (Kernel.mutualInformation_strictlyConcave_of_rowMatrixFullRank k hRank) hpMax hqMax |>.symm
+
+end
 
 end EntropyFormula
 

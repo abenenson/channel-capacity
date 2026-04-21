@@ -8,6 +8,7 @@ import ChannelCapacity.ChainRule
 import ChannelCapacity.NonDegeneracy
 import ChannelCapacity.StrictConcavity
 import ChannelCapacity.Capacity
+import ChannelCapacity.Finite
 
 /-!
 # ChannelCapacity

@@ -1,7 +1,13 @@
 # channel-capacity
 
-Lean 4 formalization of **Shannon capacity-achieving prior uniqueness** for a Markov kernel, with
-the correct non-degeneracy surface centered on injectivity of the prior-to-output map.
+Lean 4 formalization of **Shannon capacity-achieving prior uniqueness** for Markov kernels.
+
+The library has two layers:
+
+- a **finite-alphabet theorem** with compactness, continuity, and strict concavity discharged
+  internally on Mathlib's canonical weak topology for `ProbabilityMeasure`;
+- a broader **measure-theoretic packaging theorem** that isolates the abstract hypotheses needed
+  for future upstream generalization.
 
 > **Status:** Lean `v4.29.1`, Mathlib only, zero `sorry`/`admit`/axiom, Mathlib-upstream candidate.
 
@@ -19,7 +25,30 @@ noncomputable def channelCapacity (k : Kernel α β) [IsMarkovKernel k] : ℝ
 `mutualInformation` is defined measure-theoretically as the KL divergence between the joint law
 `p ⊗ k` and the product of its marginals.
 
-## Main theorem
+## Headline theorem
+
+```lean
+theorem exists_unique_capacity_achieving_prior_of_finite
+    {α β : Type*}
+    [Fintype α] [Fintype β]
+    [MeasurableSpace α] [MeasurableSpace β]
+    [MeasurableSingletonClass α] [MeasurableSingletonClass β]
+    [Nonempty α]
+    (k : Kernel α β) [IsMarkovKernel k]
+    (h : Kernel.RowMatrixFullRank k) :
+    ∃! p : ProbabilityMeasure α, mutualInformation p k = channelCapacity k
+```
+
+This theorem lives in `ChannelCapacity.Finite`. It proves uniqueness directly from:
+
+- a finite entropy formula for mutual information;
+- strict concavity of output entropy via `Real.strictConcaveOn_negMulLog`;
+- linearity of conditional entropy in the prior;
+- compactness of `ProbabilityMeasure α` for finite discrete alphabets via Mathlib's
+  `MeasureTheory.Measure.Prokhorov`;
+- injectivity of the prior pushforward map derived from `Kernel.RowMatrixFullRank`.
+
+## General theorem
 
 ```lean
 theorem exists_unique_capacity_achieving_prior
@@ -35,10 +64,8 @@ theorem exists_unique_capacity_achieving_prior
     ∃! p : ProbabilityMeasure α, mutualInformation p k = channelCapacity k
 ```
 
-The topological existence argument is packaged separately. Uniqueness is derived internally from
-`InjectivePriorPushforward` together with the measure-theoretic bundle
-`WellConditionedForCapacity`, so no standalone strict-concavity hypothesis appears in the final
-statement.
+This remains in `ChannelCapacity.Capacity` as the measure-theoretic companion theorem. It is useful
+as a staging result, but the finite theorem above is the current Mathlib-facing upstream candidate.
 
 ## Counterexample
 
@@ -57,17 +84,26 @@ with the same output law.
 ## File layout
 
 - `ChannelCapacity/Basic.lean`: mutual information and joint/output laws
+- `ChannelCapacity/Finite.lean`: finite entropy formula, continuity, strict concavity, and the
+  fully discharged finite uniqueness theorem
 - `ChannelCapacity/NonDegeneracy.lean`: injective pushforward and row separation
 - `ChannelCapacity/StrictConcavity.lean`: strict concavity on probability measures
 - `ChannelCapacity/Capacity.lean`: capacity and uniqueness packaging
+- `ChannelCapacity/ForMathlib/KernelCompositionKullbackLeibler.lean`: generic KL/kernel lemmas
+  extracted toward a standalone Mathlib PR
 - `ChannelCapacity/Counterexample.lean`: permutation-channel counterexample, not re-exported by
   `ChannelCapacity`
 
 ## Sources and precedents
 
 - Mathlib kernel, product-measure, KL-divergence, and semicontinuity libraries; in particular the
-  APIs around `ProbabilityTheory.Kernel`, `Measure.compProd`, `InformationTheory.klDiv`, and
-  `UpperSemicontinuousOn.exists_isMaxOn`
+  APIs around `ProbabilityTheory.Kernel`, `Measure.compProd`, `InformationTheory.klDiv`,
+  `ProbabilityMeasure.continuous_integral_continuousMap`, `Real.strictConcaveOn_negMulLog`, and
+  compactness of `ProbabilityMeasure` on compact spaces
+- Mathlib finite-simplex and convex-analysis infrastructure, used as structural prior art even
+  where the final proof is phrased directly on `ProbabilityMeasure`
+- SFT/OmegaFlow as proof-structure prior art for KL strict concavity and compactness packaging;
+  this repository does not import it
 - C. E. Shannon, "A Mathematical Theory of Communication" (1948)
 - I. M. Gel'fand and A. M. Yaglom, work on mutual information for general random objects
 - S. Arimoto, "An Algorithm for Computing the Capacity of Arbitrary Discrete Memoryless Channels"
