@@ -57,7 +57,7 @@ structure WellConditionedForCapacity (k : Kernel α β) [IsMarkovKernel k] : Pro
 
 @[simp]
 theorem priorPushforward_dirac (k : Kernel α β) [IsMarkovKernel k] (a : α) :
-    Kernel.priorPushforward k (ProbabilityMeasure.dirac a) =
+    Kernel.priorPushforward k (MeasureTheory.diracProba a) =
       (⟨k a, ProbabilityTheory.IsMarkovKernel.isProbabilityMeasure (κ := k) a⟩ :
         ProbabilityMeasure β) := by
   apply ProbabilityMeasure.toMeasure_injective

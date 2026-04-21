@@ -26,10 +26,10 @@ noncomputable def asProbabilityMeasure {α : Type*} [MeasurableSpace α] (p : PM
 noncomputable def uniformTriple {α : Type*} [MeasurableSpace α] (a b c : α) :
     ProbabilityMeasure α :=
   ProbabilityMeasure.convexCombination
-    (ProbabilityMeasure.dirac a)
+    (MeasureTheory.diracProba a)
     (ProbabilityMeasure.convexCombination
-      (ProbabilityMeasure.dirac b)
-      (ProbabilityMeasure.dirac c)
+      (MeasureTheory.diracProba b)
+      (MeasureTheory.diracProba c)
       (1 / 2)
       (by
         have h : (1 : ℝ) / 2 ≤ 1 := by norm_num

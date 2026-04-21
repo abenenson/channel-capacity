@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Benenson
 -/
 import Mathlib.InformationTheory.KullbackLeibler.Basic
+import Mathlib.MeasureTheory.Measure.DiracProba
 import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
 import Mathlib.Probability.Kernel.Composition.MeasureComp
 import Mathlib.Probability.Kernel.Composition.MeasureCompProd
@@ -17,7 +18,6 @@ Measure-theoretic primitives for Shannon mutual information over a Markov kernel
 This file keeps the surface small:
 
 - `ProbabilityMeasure.convexCombination`
-- `ProbabilityMeasure.dirac`
 - `jointLaw`
 - `outputPrior`
 - `independentJointLaw`
@@ -49,8 +49,9 @@ noncomputable def convexCombination (μ ν : ProbabilityMeasure Ω) (t : NNReal)
       _ = t • (1 : ENNReal) + ((1 : NNReal) - t) • (1 : ENNReal) := by simp
       _ = 1 := by
             change (t : ENNReal) * 1 + (((1 : NNReal) - t : NNReal) : ENNReal) * 1 = 1
-            simp
-            exact_mod_cast add_tsub_cancel_of_le ht⟩
+            rw [mul_one, mul_one]
+            have h : t + (1 - t) = (1 : NNReal) := add_tsub_cancel_of_le ht
+            exact_mod_cast h⟩
 
 @[simp]
 theorem convexCombination_toMeasure (μ ν : ProbabilityMeasure Ω) (t : NNReal)
@@ -62,18 +63,10 @@ theorem convexCombination_toMeasure (μ ν : ProbabilityMeasure Ω) (t : NNReal)
 @[simp]
 theorem convexCombination_apply (μ ν : ProbabilityMeasure Ω) (t : NNReal)
     (ht : t ≤ (1 : NNReal))
-    {s : Set Ω} (hs : MeasurableSet s) :
+    {s : Set Ω} (_hs : MeasurableSet s) :
     (convexCombination μ ν t ht).toMeasure s =
       (t : ENNReal) * μ.toMeasure s + (((1 : NNReal) - t : NNReal) : ENNReal) * ν.toMeasure s := by
-  simpa [convexCombination_toMeasure, Measure.add_apply, Measure.smul_apply, hs]
-
-/-- Dirac probability measure. -/
-noncomputable def dirac (x : Ω) : ProbabilityMeasure Ω :=
-  ⟨Measure.dirac x, by infer_instance⟩
-
-@[simp]
-theorem dirac_toMeasure (x : Ω) : (dirac x).toMeasure = Measure.dirac x :=
-  rfl
+  simp [convexCombination_toMeasure, Measure.add_apply, Measure.smul_apply]
 
 end ProbabilityMeasure
 
