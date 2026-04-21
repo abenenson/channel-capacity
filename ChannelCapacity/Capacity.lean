@@ -71,13 +71,19 @@ theorem exists_capacity_achieving_prior (k : Kernel α β) [IsMarkovKernel k]
   rcases exists_isMaximizer_mutualInformation k hNonempty hCompact hUsc with ⟨p, hp⟩
   exact ⟨p, (channelCapacity_eq_of_isMaximizer k hp).symm⟩
 
-theorem exists_unique_capacity_achieving_prior (k : Kernel α β) [IsMarkovKernel k]
-    (h : Kernel.InjectivePriorPushforward k) [TopologicalSpace (ProbabilityMeasure α)]
+theorem exists_unique_capacity_achieving_prior
+    {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
+    [MeasurableSpace.CountableOrCountablyGenerated α β]
+    (k : Kernel α β) [IsMarkovKernel k]
+    (h : Kernel.InjectivePriorPushforward k)
+    (hWC : Kernel.WellConditionedForCapacity k)
+    [TopologicalSpace (ProbabilityMeasure α)]
     (hNonempty : (Set.univ : Set (ProbabilityMeasure α)).Nonempty)
     (hCompact : IsCompact (Set.univ : Set (ProbabilityMeasure α)))
-    (hUsc : UpperSemicontinuous fun p : ProbabilityMeasure α => mutualInformation p k)
-    (hStrict : Kernel.StrictlyConcaveMutualInformation k h) :
+    (hUsc : UpperSemicontinuous fun p : ProbabilityMeasure α => mutualInformation p k) :
     ∃! p : ProbabilityMeasure α, mutualInformation p k = channelCapacity k := by
+  let hStrict : Kernel.StrictlyConcaveMutualInformation k h :=
+    Kernel.mutualInformation_strictlyConcave_of_injectivePriorPushforward k h hWC
   rcases exists_isMaximizer_mutualInformation k hNonempty hCompact hUsc with ⟨pMax, hpMax⟩
   refine ⟨pMax, (channelCapacity_eq_of_isMaximizer k hpMax).symm, ?_⟩
   intro p hp
