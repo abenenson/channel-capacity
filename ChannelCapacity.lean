@@ -11,6 +11,7 @@ import ChannelCapacity.StrictConcavity
 import ChannelCapacity.Capacity
 import ChannelCapacity.Finite
 import ChannelCapacity.Discharged
+import ChannelCapacity.DischargedExample
 
 /-!
 # ChannelCapacity
