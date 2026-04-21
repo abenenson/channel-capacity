@@ -3,10 +3,8 @@ Copyright (c) 2026 Adam Benenson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Benenson
 -/
-module
-
-public import Mathlib.InformationTheory.KullbackLeibler.Basic
-public import Mathlib.Probability.Kernel.CompProdEqIff
+import Mathlib.InformationTheory.KullbackLeibler.Basic
+import Mathlib.Probability.Kernel.CompProdEqIff
 
 import Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym
 import Mathlib.Probability.Kernel.RadonNikodym
@@ -15,9 +13,7 @@ import Mathlib.Probability.Kernel.RadonNikodym
 # Kullback-Leibler divergence and kernel composition products
 
 This file contains generic lemmas about Kullback-Leibler divergence and Radon-Nikodym derivatives
-for composition products of measures and kernels. These lemmas are used by the channel-capacity
-development, but they are stated without channel-specific dependencies and are intended to be
-reasonable Mathlib upstream candidates in their own right.
+for composition products of measures and kernels.
 
 ## Main statements
 
@@ -31,8 +27,6 @@ reasonable Mathlib upstream candidates in their own right.
 The last two lemmas complement `Mathlib/Probability/Kernel/Composition/RadonNikodym.lean`, where
 the corresponding Radon-Nikodym derivative with different left measures is already available.
 -/
-
-@[expose] public section
 
 open MeasureTheory ProbabilityTheory
 open scoped ENNReal
