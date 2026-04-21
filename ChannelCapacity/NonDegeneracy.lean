@@ -40,13 +40,20 @@ def InjectivePriorPushforward (k : Kernel α β) [IsMarkovKernel k] : Prop :=
 
 /-- Measure-theoretic non-degeneracy bundle for the capacity theorem. Each prior's rows are
 absolutely continuous with respect to the induced output marginal, and the joint KL divergence is
-finite against any reference measure that dominates the rows for that prior. -/
+finite against any reference measure that dominates the rows for that prior. The chain-rule field
+is the extra bridge needed for strict concavity: it isolates the positive output-marginal
+correction term against an arbitrary dominating reference. -/
 structure WellConditionedForCapacity (k : Kernel α β) [IsMarkovKernel k] : Prop where
   hRowAC : ∀ p : ProbabilityMeasure α,
     ∀ᵐ x ∂p.toMeasure, k x ≪ (outputPrior k p).toMeasure
   hFiniteRefKL : ∀ (p : ProbabilityMeasure α) (ν : Measure β),
     (∀ᵐ x ∂p.toMeasure, k x ≪ ν) →
       InformationTheory.klDiv (p.toMeasure ⊗ₘ k) (p.toMeasure ⊗ₘ Kernel.const _ ν) ≠ ∞
+  hChainRule : ∀ (p : ProbabilityMeasure α) (ν : Measure β),
+    (∀ᵐ x ∂p.toMeasure, k x ≪ ν) →
+      InformationTheory.klDiv (jointLaw k p).toMeasure (p.toMeasure ⊗ₘ Kernel.const _ ν) =
+        InformationTheory.klDiv (jointLaw k p).toMeasure (independentJointLaw k p).toMeasure +
+          InformationTheory.klDiv (outputPrior k p).toMeasure ν
 
 @[simp]
 theorem priorPushforward_dirac (k : Kernel α β) [IsMarkovKernel k] (a : α) :
