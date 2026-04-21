@@ -9,6 +9,7 @@ import ChannelCapacity.KernelCompositionKullbackLeibler
 
 import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
 import Mathlib.MeasureTheory.Constructions.Polish.Basic
+import Mathlib.MeasureTheory.Measure.Prokhorov
 import Mathlib.Probability.Kernel.WithDensity
 
 /-!
@@ -361,6 +362,23 @@ theorem wellConditionedForCapacity_of_continuousPositiveDensity
       hChainRule := hChainRule_of_outputMarginalReference (k := k) }
 
 end OutputPrior
+
+section Compactness
+
+variable [CompactSpace α] [PolishSpace α] [BorelSpace α] [OpensMeasurableSpace α] [Nonempty α]
+
+omit [TopologicalSpace α] [CompactSpace α] [PolishSpace α] [BorelSpace α]
+  [OpensMeasurableSpace α] in
+theorem univ_nonempty_probabilityMeasure :
+    (Set.univ : Set (ProbabilityMeasure α)).Nonempty := by
+  exact ⟨MeasureTheory.diracProba (Classical.choice ‹Nonempty α›), Set.mem_univ _⟩
+
+omit [Nonempty α] in
+theorem isCompact_univ_probabilityMeasure :
+    IsCompact (Set.univ : Set (ProbabilityMeasure α)) :=
+  isCompact_univ
+
+end Compactness
 
 end ContinuousPositiveDensity
 
