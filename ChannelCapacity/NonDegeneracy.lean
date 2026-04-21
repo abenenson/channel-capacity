@@ -38,6 +38,16 @@ def RowSeparating (k : Kernel α β) : Prop :=
 def InjectivePriorPushforward (k : Kernel α β) [IsMarkovKernel k] : Prop :=
   Function.Injective (priorPushforward k)
 
+/-- Measure-theoretic non-degeneracy bundle for the capacity theorem. Each prior's rows are
+absolutely continuous with respect to the induced output marginal, and the joint KL divergence is
+finite against any reference measure that dominates the rows for that prior. -/
+structure WellConditionedForCapacity (k : Kernel α β) [IsMarkovKernel k] : Prop where
+  hRowAC : ∀ p : ProbabilityMeasure α,
+    ∀ᵐ x ∂p.toMeasure, k x ≪ (outputPrior k p).toMeasure
+  hFiniteRefKL : ∀ (p : ProbabilityMeasure α) (ν : Measure β),
+    (∀ᵐ x ∂p.toMeasure, k x ≪ ν) →
+      InformationTheory.klDiv (p.toMeasure ⊗ₘ k) (p.toMeasure ⊗ₘ Kernel.const _ ν) ≠ ∞
+
 @[simp]
 theorem priorPushforward_dirac (k : Kernel α β) [IsMarkovKernel k] (a : α) :
     Kernel.priorPushforward k (ProbabilityMeasure.dirac a) =

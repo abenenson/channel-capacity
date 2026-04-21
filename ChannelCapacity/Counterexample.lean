@@ -7,6 +7,12 @@ import ChannelCapacity.Capacity
 import Mathlib.MeasureTheory.Measure.Dirac
 import Mathlib.Probability.ProbabilityMassFunction.Constructions
 
+/-!
+# ChannelCapacity.Counterexample
+
+A finite counterexample showing that row separation does not imply injective prior pushforward.
+-/
+
 open MeasureTheory
 open ProbabilityTheory
 open scoped ENNReal NNReal
