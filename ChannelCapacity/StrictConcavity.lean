@@ -5,6 +5,7 @@ Authors: Adam Benenson
 -/
 import ChannelCapacity.ChainRule
 import ChannelCapacity.NonDegeneracy
+import Mathlib.Order.Filter.Extr
 
 /-!
 # ChannelCapacity.StrictConcavity
@@ -30,21 +31,19 @@ def StrictlyConcave (f : ProbabilityMeasure α → ℝ) : Prop :=
     f (ProbabilityMeasure.convexCombination p q t (le_of_lt ht_lt_one)) >
       (t : ℝ) * f p + (1 - (t : ℝ)) * f q
 
-/-- Global maximizer of a function on probability measures. -/
-def IsMaximizer (f : ProbabilityMeasure α → ℝ) (p : ProbabilityMeasure α) : Prop :=
-  ∀ q, f q ≤ f p
-
-theorem eq_of_isMaximizer_of_strictlyConcave {f : ProbabilityMeasure α → ℝ}
+theorem eq_of_isMaxOn_univ_of_strictlyConcave {f : ProbabilityMeasure α → ℝ}
     (hStrict : StrictlyConcave f) {p q : ProbabilityMeasure α}
-    (hp : IsMaximizer f p) (hq : IsMaximizer f q) : p = q := by
+    (hp : IsMaxOn f Set.univ p) (hq : IsMaxOn f Set.univ q) : p = q := by
   by_contra hne
+  have hp' : ∀ r, f r ≤ f p := isMaxOn_univ_iff.mp hp
+  have hq' : ∀ r, f r ≤ f q := isMaxOn_univ_iff.mp hq
   let t : NNReal := 1 / 2
   have ht_pos : 0 < t := by norm_num [t]
   have ht_lt_one : t < 1 := by norm_num [t]
   have hMixLe :
       f (ProbabilityMeasure.convexCombination p q t (le_of_lt ht_lt_one)) ≤ f p :=
-    hp _
-  have hpq : f p = f q := le_antisymm (hq p) (hp q)
+    hp' _
+  have hpq : f p = f q := le_antisymm (hq' _) (hp' _)
   have hMixGt :
       f (ProbabilityMeasure.convexCombination p q t (le_of_lt ht_lt_one)) >
         (t : ℝ) * f p + (1 - (t : ℝ)) * f q := by

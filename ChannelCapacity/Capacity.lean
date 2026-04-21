@@ -30,37 +30,37 @@ def IsCapacityAchievingPrior (k : Kernel α β) [IsMarkovKernel k]
     (p : ProbabilityMeasure α) : Prop :=
   mutualInformation p k = channelCapacity k
 
-theorem channelCapacity_eq_of_isMaximizer (k : Kernel α β) [IsMarkovKernel k]
+theorem channelCapacity_eq_of_isMaxOn_univ (k : Kernel α β) [IsMarkovKernel k]
     {p : ProbabilityMeasure α}
-    (hp : ProbabilityMeasure.IsMaximizer (fun q => mutualInformation q k) p) :
+    (hp : IsMaxOn (fun q => mutualInformation q k) Set.univ p) :
     channelCapacity k = mutualInformation p k := by
   let s : Set ℝ := Set.range fun q : ProbabilityMeasure α => mutualInformation q k
+  have hp' : ∀ q : ProbabilityMeasure α, mutualInformation q k ≤ mutualInformation p k :=
+    isMaxOn_univ_iff.mp hp
   have hsNonempty : s.Nonempty := ⟨mutualInformation p k, ⟨p, rfl⟩⟩
   have hsBdd : BddAbove s := by
     refine ⟨mutualInformation p k, ?_⟩
     rintro _ ⟨q, rfl⟩
-    exact hp q
+    exact hp' q
   apply le_antisymm
   · refine csSup_le hsNonempty ?_
     rintro _ ⟨q, rfl⟩
-    exact hp q
+    exact hp' q
   · refine le_csSup hsBdd ?_
     exact ⟨p, rfl⟩
 
-theorem exists_isMaximizer_mutualInformation (k : Kernel α β) [IsMarkovKernel k]
+theorem exists_isMaxOn_mutualInformation (k : Kernel α β) [IsMarkovKernel k]
     [TopologicalSpace (ProbabilityMeasure α)]
     (hNonempty : (Set.univ : Set (ProbabilityMeasure α)).Nonempty)
     (hCompact : IsCompact (Set.univ : Set (ProbabilityMeasure α)))
     (hUsc : UpperSemicontinuous fun p : ProbabilityMeasure α => mutualInformation p k) :
     ∃ p : ProbabilityMeasure α,
-      ProbabilityMeasure.IsMaximizer (fun q => mutualInformation q k) p := by
+      IsMaxOn (fun q => mutualInformation q k) Set.univ p := by
   rcases UpperSemicontinuousOn.exists_isMaxOn
       (f := fun p : ProbabilityMeasure α => mutualInformation p k)
       (s := (Set.univ : Set (ProbabilityMeasure α)))
       hNonempty hCompact (hUsc.upperSemicontinuousOn _) with ⟨p, _hp, hp⟩
-  refine ⟨p, ?_⟩
-  intro q
-  exact (isMaxOn_iff.mp hp) q (by simp)
+  exact ⟨p, hp⟩
 
 theorem exists_capacity_achieving_prior (k : Kernel α β) [IsMarkovKernel k]
     [TopologicalSpace (ProbabilityMeasure α)]
@@ -68,8 +68,8 @@ theorem exists_capacity_achieving_prior (k : Kernel α β) [IsMarkovKernel k]
     (hCompact : IsCompact (Set.univ : Set (ProbabilityMeasure α)))
     (hUsc : UpperSemicontinuous fun p : ProbabilityMeasure α => mutualInformation p k) :
     ∃ p : ProbabilityMeasure α, IsCapacityAchievingPrior k p := by
-  rcases exists_isMaximizer_mutualInformation k hNonempty hCompact hUsc with ⟨p, hp⟩
-  exact ⟨p, (channelCapacity_eq_of_isMaximizer k hp).symm⟩
+  rcases exists_isMaxOn_mutualInformation k hNonempty hCompact hUsc with ⟨p, hp⟩
+  exact ⟨p, (channelCapacity_eq_of_isMaxOn_univ k hp).symm⟩
 
 theorem exists_unique_capacity_achieving_prior
     {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
@@ -84,15 +84,17 @@ theorem exists_unique_capacity_achieving_prior
     ∃! p : ProbabilityMeasure α, mutualInformation p k = channelCapacity k := by
   let hStrict : Kernel.StrictlyConcaveMutualInformation k h :=
     Kernel.mutualInformation_strictlyConcave_of_injectivePriorPushforward k h hWC
-  rcases exists_isMaximizer_mutualInformation k hNonempty hCompact hUsc with ⟨pMax, hpMax⟩
-  refine ⟨pMax, (channelCapacity_eq_of_isMaximizer k hpMax).symm, ?_⟩
+  rcases exists_isMaxOn_mutualInformation k hNonempty hCompact hUsc with ⟨pMax, hpMax⟩
+  refine ⟨pMax, (channelCapacity_eq_of_isMaxOn_univ k hpMax).symm, ?_⟩
   intro p hp
-  have hp' : ProbabilityMeasure.IsMaximizer (fun q => mutualInformation q k) p := by
-    intro q
+  have hpMax' : ∀ q : ProbabilityMeasure α, mutualInformation q k ≤ mutualInformation pMax k :=
+    isMaxOn_univ_iff.mp hpMax
+  have hp' : IsMaxOn (fun q => mutualInformation q k) Set.univ p := by
+    intro q _hq
     calc
-      mutualInformation q k ≤ mutualInformation pMax k := hpMax q
-      _ = channelCapacity k := (channelCapacity_eq_of_isMaximizer k hpMax).symm
+      mutualInformation q k ≤ mutualInformation pMax k := hpMax' q
+      _ = channelCapacity k := (channelCapacity_eq_of_isMaxOn_univ k hpMax).symm
       _ = mutualInformation p k := hp.symm
-  exact ProbabilityMeasure.eq_of_isMaximizer_of_strictlyConcave hStrict hp' hpMax
+  exact ProbabilityMeasure.eq_of_isMaxOn_univ_of_strictlyConcave hStrict hp' hpMax
 
 end ChannelCapacity

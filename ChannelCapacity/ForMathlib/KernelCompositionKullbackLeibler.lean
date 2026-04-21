@@ -106,16 +106,19 @@ theorem klDiv_compProd_right
         (fun p : α × β ↦
           ENNReal.ofReal (InformationTheory.klFun ((κ.rnDeriv η p.1 p.2).toReal))) := by
     exact
-      (InformationTheory.measurable_klFun.comp (κ.measurable_rnDeriv η).ennreal_toReal).ennreal_ofReal
+      (InformationTheory.measurable_klFun.comp
+        (κ.measurable_rnDeriv η).ennreal_toReal).ennreal_ofReal
   rw [InformationTheory.klDiv_eq_lintegral_klFun_of_ac h_ac]
   calc
     ∫⁻ p, ENNReal.ofReal
         (InformationTheory.klFun (((μ ⊗ₘ κ).rnDeriv (μ ⊗ₘ η) p).toReal)) ∂μ ⊗ₘ η
-      = ∫⁻ p, ENNReal.ofReal (InformationTheory.klFun ((κ.rnDeriv η p.1 p.2).toReal)) ∂μ ⊗ₘ η := by
+      = ∫⁻ p,
+          ENNReal.ofReal (InformationTheory.klFun ((κ.rnDeriv η p.1 p.2).toReal)) ∂μ ⊗ₘ η := by
           refine lintegral_congr_ae ?_
           exact (rnDeriv_compProd_right (μ := μ) (κ := κ) (η := η)).mono fun p hp => by
             simp [hp]
-    _ = ∫⁻ a, ∫⁻ b, ENNReal.ofReal (InformationTheory.klFun ((κ.rnDeriv η a b).toReal)) ∂η a ∂μ := by
+    _ = ∫⁻ a,
+          ∫⁻ b, ENNReal.ofReal (InformationTheory.klFun ((κ.rnDeriv η a b).toReal)) ∂η a ∂μ := by
           rw [Measure.lintegral_compProd hmeas]
     _ = ∫⁻ a, InformationTheory.klDiv (κ a) (η a) ∂μ := by
           refine lintegral_congr_ae ?_

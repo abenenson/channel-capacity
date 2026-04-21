@@ -82,9 +82,8 @@ theorem priorPushforward_convexCombination (k : Kernel α β) [IsMarkovKernel k]
     (ProbabilityMeasure.convexCombination (Kernel.priorPushforward k p)
       (Kernel.priorPushforward k q) t ht).toMeasure
   rw [Measure.comp_smul, Measure.comp_smul, ProbabilityMeasure.convexCombination_toMeasure]
-  simp [Kernel.priorPushforward, outputPrior]
-  change ((((1 : NNReal) - t : NNReal) : ENNReal) • (k ∘ₘ q.toMeasure)) =
-    ((((1 : NNReal) - t : NNReal) : ENNReal) • (k ∘ₘ q.toMeasure))
+  change t • (k ∘ₘ p.toMeasure) + (1 - (t : ENNReal)) • (k ∘ₘ q.toMeasure) =
+    t • (k ∘ₘ p.toMeasure) + (1 - (t : ENNReal)) • (k ∘ₘ q.toMeasure)
   rfl
 
 @[simp]
