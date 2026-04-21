@@ -517,6 +517,18 @@ theorem continuous_entropy :
     (continuous_finset_sum (s := Finset.univ) fun a _ha =>
       Real.continuous_negMulLog.comp (continuous_toReal_apply_singleton a))
 
+omit [TopologicalSpace α] [DiscreteTopology α] [BorelSpace α] [CompactSpace α] in
+theorem ProbabilityMeasure.integral_eq_sum_singletonMass (μ : ProbabilityMeasure α) (f : α → ℝ) :
+    ∫ a, f a ∂μ.toMeasure = ∑ a, (μ.toMeasure {a}).toReal * f a := by
+  have hf : Integrable f μ.toMeasure := by
+    have hf_simple :
+        Integrable (MeasureTheory.SimpleFunc.ofFinite f : α → ℝ) μ.toMeasure :=
+      (MeasureTheory.SimpleFunc.integrable_of_isFiniteMeasure
+        (μ := μ.toMeasure) (MeasureTheory.SimpleFunc.ofFinite f))
+    exact hf_simple
+  simpa [measureReal_def, smul_eq_mul] using
+    (MeasureTheory.integral_fintype (μ := μ.toMeasure) (f := f) hf)
+
 omit [Fintype α] [Fintype β] [TopologicalSpace β] [DiscreteTopology β] [BorelSpace β]
   [CompactSpace β] in
 theorem continuous_outputPrior_toReal_apply_singleton [Finite α]
@@ -531,6 +543,22 @@ theorem continuous_outputPrior_toReal_apply_singleton [Finite α]
   convert hsum using 1
   ext p
   exact toReal_outputPrior_apply_singleton k p b
+
+omit [Fintype α] [Fintype β] [DiscreteTopology β] in
+theorem continuous_outputPrior [Finite α] [Finite β] (k : Kernel α β) [IsMarkovKernel k] :
+    Continuous fun p : ProbabilityMeasure α => outputPrior k p := by
+  let _instFintypeα : Fintype α := Fintype.ofFinite α
+  let _instFintypeβ : Fintype β := Fintype.ofFinite β
+  rw [ProbabilityMeasure.continuous_iff_forall_continuousMap_continuous_integral]
+  intro f
+  have hsum :
+      Continuous fun p : ProbabilityMeasure α =>
+        ∑ b, ((outputPrior k p).toMeasure {b}).toReal * f b :=
+    continuous_finset_sum (s := (Finset.univ : Finset β)) fun b _hb =>
+      (continuous_outputPrior_toReal_apply_singleton k b).mul continuous_const
+  convert hsum using 1
+  ext p
+  rw [ProbabilityMeasure.integral_eq_sum_singletonMass]
 
 omit [Fintype α] [TopologicalSpace β] [DiscreteTopology β] [BorelSpace β] [CompactSpace β] in
 theorem continuous_outputEntropy [Finite α] (k : Kernel α β) [IsMarkovKernel k] :
