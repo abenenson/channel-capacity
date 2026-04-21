@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Benenson
 -/
 import ChannelCapacity.NonDegeneracy
+import ChannelCapacity.KernelCompositionKullbackLeibler
 
 import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
 import Mathlib.MeasureTheory.Constructions.Polish.Basic
@@ -17,23 +18,6 @@ Concrete density-regularity hypotheses for discharging the generic capacity theo
 This module introduces the compact-Polish density class used by the discharged theorem program:
 rows admit a common reference density, the density is jointly continuous, and it is strictly
 positive everywhere.
-
-## WIP note
-
-Milestone 3 is blocked at the current abstraction boundary. The field
-`Kernel.WellConditionedForCapacity.hFiniteRefKL` quantifies over every reference measure `ν` that
-dominates the relevant rows. Under the concrete class in this file, we can control KL against the
-fixed dominating reference from the class, and against output marginals that are themselves
-equivalent to that reference. What does not follow from the present assumptions is finiteness
-against an arbitrary dominating `ν`: the class gives `ν₀ ≪ ν`, but not the extra integrability
-needed to control the Radon-Nikodym correction from `ν₀` to `ν`.
-
-Attempts made:
-- reduce the joint KL to a rowwise integral via `klDiv_compProd_right`
-- use compactness of `α × β` and continuity of the density to obtain a uniform bound on the
-  fixed-reference `klFun` integrand
-- inspect the Radon-Nikodym / chain-rule API to lift that bound to arbitrary dominating references;
-  this is where the missing control on the reference change appears
 -/
 
 open MeasureTheory
@@ -82,16 +66,51 @@ theorem density_ennreal_ne_zero (h : ContinuousPositiveDensity k ν) (a : α) (b
     (h.density a b : ENNReal) ≠ 0 :=
   ne_of_gt (h.density_ennreal_pos a b)
 
+section UniformBounds
+
+variable [CompactSpace α] [CompactSpace β] [Nonempty α] [Nonempty β]
+
+/-- A strictly positive jointly continuous density on a compact product has a positive uniform lower
+bound and a finite uniform upper bound. -/
+theorem exists_uniform_density_bounds
+    (h : ContinuousPositiveDensity k ν) :
+    ∃ c C : NNReal,
+      0 < c ∧ ∀ a b, c ≤ h.density a b ∧ h.density a b ≤ C := by
+  let f : α × β → NNReal := Function.uncurry h.density
+  obtain ⟨xMin, -, hxMin⟩ := IsCompact.exists_isMinOn (α := NNReal)
+    (β := α × β) isCompact_univ Set.univ_nonempty h.continuous_density.continuousOn
+  obtain ⟨xMax, -, hxMax⟩ := IsCompact.exists_isMaxOn (α := NNReal)
+    (β := α × β) isCompact_univ Set.univ_nonempty h.continuous_density.continuousOn
+  refine ⟨f xMin, f xMax, ?_, ?_⟩
+  · simpa [f, Function.uncurry] using h.density_pos xMin.1 xMin.2
+  · intro a b
+    constructor
+    · exact (isMinOn_univ_iff.mp hxMin) (a, b)
+    · exact (isMaxOn_univ_iff.mp hxMax) (a, b)
+
+end UniformBounds
+
+lemma klFun_le_sq_add_one {x B : ℝ} (hx : 0 ≤ x) (hB : x ≤ B) :
+    InformationTheory.klFun x ≤ B ^ 2 + 1 := by
+  have hlog : Real.log x ≤ x := Real.log_le_self hx
+  calc
+    InformationTheory.klFun x = x * Real.log x + 1 - x := rfl
+    _ ≤ x * x + 1 - x := by
+      gcongr
+    _ ≤ B ^ 2 + 1 := by
+      nlinarith
+
 section OutputPrior
 
-variable [CompactSpace α] [PolishSpace α] [PolishSpace β] [BorelSpace α] [BorelSpace β]
+variable [CompactSpace α] [CompactSpace β] [PolishSpace α] [PolishSpace β]
+variable [BorelSpace α] [BorelSpace β]
 variable [OpensMeasurableSpace α] [OpensMeasurableSpace β] [IsFiniteMeasure ν]
 
 noncomputable def outputDensity (h : ContinuousPositiveDensity k ν) (p : ProbabilityMeasure α) :
     β → ENNReal :=
   fun b => ∫⁻ a, (h.density a b : ENNReal) ∂p.toMeasure
 
-omit [CompactSpace α] [BorelSpace α] [BorelSpace β] in
+omit [CompactSpace α] [CompactSpace β] [BorelSpace α] [BorelSpace β] in
 theorem aemeasurable_outputDensity (h : ContinuousPositiveDensity k ν) (p : ProbabilityMeasure α) :
     AEMeasurable (h.outputDensity p) ν := by
   have hbase :
@@ -101,7 +120,7 @@ theorem aemeasurable_outputDensity (h : ContinuousPositiveDensity k ν) (p : Pro
     simpa [Function.uncurry] using (ENNReal.continuous_coe.comp h.continuous_density).aemeasurable
   exact hbase.lintegral_prod_left (μ := p.toMeasure) (ν := ν)
 
-omit [CompactSpace α] [BorelSpace α] [BorelSpace β] in
+omit [CompactSpace α] [CompactSpace β] [BorelSpace α] [BorelSpace β] in
 theorem outputPrior_eq_withDensity_outputDensity
     (h : ContinuousPositiveDensity k ν) (p : ProbabilityMeasure α) :
     (outputPrior k p).toMeasure = ν.withDensity (h.outputDensity p) := by
@@ -119,7 +138,7 @@ theorem outputPrior_eq_withDensity_outputDensity
     (lintegral_lintegral_swap (μ := p.toMeasure) (ν := ν.restrict s)
       (f := fun a b => (h.density a b : ENNReal)) hbase)
 
-omit [PolishSpace α] [PolishSpace β] [BorelSpace α] [BorelSpace β]
+omit [CompactSpace β] [PolishSpace α] [PolishSpace β] [BorelSpace α] [BorelSpace β]
   [OpensMeasurableSpace α] [OpensMeasurableSpace β] [IsFiniteMeasure ν] in
 theorem outputDensity_pos (h : ContinuousPositiveDensity k ν) (p : ProbabilityMeasure α) (b : β) :
     0 < h.outputDensity p b := by
@@ -143,7 +162,7 @@ theorem outputDensity_pos (h : ContinuousPositiveDensity k ν) (p : ProbabilityM
       _ = h.outputDensity p b := rfl
   exact lt_of_lt_of_le (ENNReal.coe_pos.mpr (h.density_pos a0 b)) hconst_le
 
-omit [BorelSpace α] [BorelSpace β] in
+omit [CompactSpace β] [BorelSpace α] [BorelSpace β] in
 theorem ae_row_absolutelyContinuous_outputPrior
     (h : ContinuousPositiveDensity k ν) (p : ProbabilityMeasure α) :
     ∀ᵐ a ∂p.toMeasure, k a ≪ (outputPrior k p).toMeasure := by
@@ -157,6 +176,167 @@ theorem ae_row_absolutelyContinuous_outputPrior
     simpa [h.outputPrior_eq_withDensity_outputDensity p] using hν_ac_withDensity
   exact Filter.Eventually.of_forall fun a =>
     (h.row_absolutelyContinuous_ref a).trans hν_ac_out
+
+omit [CompactSpace β] [BorelSpace α] [BorelSpace β] in
+theorem row_absolutelyContinuous_outputPrior
+    (h : ContinuousPositiveDensity k ν) (p : ProbabilityMeasure α) (a : α) :
+    k a ≪ (outputPrior k p).toMeasure := by
+  have hν_ac_out :
+      ν ≪ (outputPrior k p).toMeasure := by
+    have hν_ac_withDensity :
+        ν ≪ ν.withDensity (h.outputDensity p) :=
+      MeasureTheory.withDensity_absolutelyContinuous'
+        (h.aemeasurable_outputDensity p)
+        (Filter.Eventually.of_forall fun b => (h.outputDensity_pos p b).ne')
+    simpa [h.outputPrior_eq_withDensity_outputDensity p] using hν_ac_withDensity
+  exact (h.row_absolutelyContinuous_ref a).trans hν_ac_out
+
+omit [BorelSpace α] [BorelSpace β] in
+theorem row_klDiv_le_outputPrior_bound
+    (h : ContinuousPositiveDensity k ν) (p : ProbabilityMeasure α) :
+    ∃ B : ℝ≥0∞, B ≠ ∞ ∧
+      ∀ a : α, InformationTheory.klDiv (k a) (outputPrior k p).toMeasure ≤ B := by
+  letI : Nonempty α := p.nonempty
+  letI : Nonempty β := (outputPrior k p).nonempty
+  rcases h.exists_uniform_density_bounds with ⟨c, C, hc_pos, h_bounds⟩
+  let Breal : ℝ := (((c : ENNReal)⁻¹ * (C : ENNReal)).toReal) ^ 2 + 1
+  let B : ℝ≥0∞ := ENNReal.ofReal Breal
+  refine ⟨B, by simp [B], ?_⟩
+  intro a
+  have h_out_lower : ∀ b, (c : ENNReal) ≤ h.outputDensity p b := by
+    intro b
+    have h_c_le_density : ∀ a' : α, (c : ENNReal) ≤ (h.density a' b : ENNReal) := by
+      intro a'
+      exact_mod_cast (h_bounds a' b).1
+    calc
+      (c : ENNReal) = ∫⁻ a', (c : ENNReal) ∂p.toMeasure := by simp
+      _ ≤ ∫⁻ a', (h.density a' b : ENNReal) ∂p.toMeasure := by
+        exact lintegral_mono h_c_le_density
+      _ = h.outputDensity p b := rfl
+  have h_out_upper : ∀ b, h.outputDensity p b ≤ (C : ENNReal) := by
+    intro b
+    have h_density_le_C : ∀ a' : α, (h.density a' b : ENNReal) ≤ (C : ENNReal) := by
+      intro a'
+      exact_mod_cast (h_bounds a' b).2
+    calc
+      h.outputDensity p b = ∫⁻ a', (h.density a' b : ENNReal) ∂p.toMeasure := rfl
+      _ ≤ ∫⁻ a', (C : ENNReal) ∂p.toMeasure := by
+        exact lintegral_mono h_density_le_C
+      _ = (C : ENNReal) := by simp
+  have h_out_ne_top : ∀ b, h.outputDensity p b ≠ ∞ := by
+    intro b
+    exact ne_top_of_le_ne_top (by simp) (h_out_upper b)
+  have h_ac : k a ≪ (outputPrior k p).toMeasure :=
+    h.row_absolutelyContinuous_outputPrior p a
+  have h_out_ac_ref :
+      (outputPrior k p).toMeasure ≪ ν := by
+    simpa [h.outputPrior_eq_withDensity_outputDensity p] using
+      MeasureTheory.withDensity_absolutelyContinuous ν (h.outputDensity p)
+  have hmeas_density_a : Measurable (fun b => (h.density a b : ENNReal)) := by
+    have hcont_density_a : Continuous fun b : β => h.density a b := by
+      have hpair : Continuous fun b : β => (a, b) := by
+        fun_prop
+      simpa [Function.uncurry] using h.continuous_density.comp hpair
+    exact (ENNReal.continuous_coe.comp hcont_density_a).measurable
+  have h_rnDeriv_ref :
+      (k a).rnDeriv ν =ᵐ[ν] fun b => (h.density a b : ENNReal) := by
+    rw [h.row_eq_withDensity a]
+    exact Measure.rnDeriv_withDensity ν hmeas_density_a
+  have h_rnDeriv_withDensity :
+      (k a).rnDeriv (ν.withDensity (h.outputDensity p)) =ᵐ[ν]
+        fun b => (h.outputDensity p b)⁻¹ * ((k a).rnDeriv ν b) := by
+    exact Measure.rnDeriv_withDensity_right
+      (μ := k a) (ν := ν) (f := h.outputDensity p)
+      (h.aemeasurable_outputDensity p)
+      (Filter.Eventually.of_forall fun b => (h.outputDensity_pos p b).ne')
+      (Filter.Eventually.of_forall fun b => h_out_ne_top b)
+  have h_rnDeriv_out_ν :
+      (k a).rnDeriv ((outputPrior k p).toMeasure) =ᵐ[ν]
+        fun b => (h.outputDensity p b)⁻¹ * (h.density a b : ENNReal) := by
+    filter_upwards [h_rnDeriv_withDensity, h_rnDeriv_ref] with b hb hb'
+    simpa [h.outputPrior_eq_withDensity_outputDensity p, hb'] using hb
+  have h_rnDeriv_out :
+      (k a).rnDeriv ((outputPrior k p).toMeasure) =ᵐ[(outputPrior k p).toMeasure]
+        fun b => (h.outputDensity p b)⁻¹ * (h.density a b : ENNReal) := by
+    exact h_out_ac_ref.ae_eq h_rnDeriv_out_ν
+  have h_integrand_le :
+      ∀ᵐ b ∂(outputPrior k p).toMeasure,
+        ENNReal.ofReal
+            (InformationTheory.klFun
+              (((k a).rnDeriv ((outputPrior k p).toMeasure) b).toReal)) ≤
+          B := by
+    filter_upwards [h_rnDeriv_out] with b hb
+    have h_density_le_C : (h.density a b : ENNReal) ≤ (C : ENNReal) := by
+      exact_mod_cast (h_bounds a b).2
+    have hratio_le :
+        (h.outputDensity p b)⁻¹ * (h.density a b : ENNReal) ≤
+          (c : ENNReal)⁻¹ * (C : ENNReal) := by
+      calc
+        (h.outputDensity p b)⁻¹ * (h.density a b : ENNReal) ≤
+            (c : ENNReal)⁻¹ * (h.density a b : ENNReal) := by
+              gcongr
+              exact h_out_lower b
+        _ ≤ (c : ENNReal)⁻¹ * (C : ENNReal) := by
+              gcongr
+    have hratio_real_le :
+        (((h.outputDensity p b)⁻¹ * (h.density a b : ENNReal)).toReal) ≤
+          (((c : ENNReal)⁻¹ * (C : ENNReal)).toReal) := by
+      have hbound_ne_top : ((c : ENNReal)⁻¹ * (C : ENNReal)) ≠ ∞ := by
+        refine ENNReal.mul_ne_top ?_ ?_
+        · simp [hc_pos.ne']
+        · simp
+      exact ENNReal.toReal_mono hbound_ne_top hratio_le
+    have hkl_le :
+        InformationTheory.klFun
+            (((h.outputDensity p b)⁻¹ * (h.density a b : ENNReal)).toReal) ≤
+          Breal := by
+      exact klFun_le_sq_add_one ENNReal.toReal_nonneg hratio_real_le
+    have hkl_le' :
+        InformationTheory.klFun
+            ((((k a).rnDeriv ((outputPrior k p).toMeasure)) b).toReal) ≤
+          Breal := by
+      rw [hb]
+      simpa [ENNReal.toReal_mul, h_out_ne_top b, ENNReal.toReal_inv,
+        (h.outputDensity_pos p b).ne'] using hkl_le
+    exact ENNReal.ofReal_le_ofReal hkl_le'
+  rw [InformationTheory.klDiv_eq_lintegral_klFun_of_ac h_ac]
+  calc
+    ∫⁻ b,
+        ENNReal.ofReal
+          (InformationTheory.klFun (((k a).rnDeriv ((outputPrior k p).toMeasure) b).toReal)) ∂
+        (outputPrior k p).toMeasure ≤
+      ∫⁻ _, B ∂(outputPrior k p).toMeasure := by
+        exact lintegral_mono_ae h_integrand_le
+    _ = B := by simp [B]
+
+omit [BorelSpace α] in
+theorem hFiniteRefKL_of_continuousPositiveDensity
+    (h : ContinuousPositiveDensity k ν) (p : ProbabilityMeasure α) (ν' : Measure β)
+    (hRef : Kernel.OutputMarginalReference k p ν') :
+    InformationTheory.klDiv (p.toMeasure ⊗ₘ k) (p.toMeasure ⊗ₘ Kernel.const _ ν') ≠ ∞ := by
+  rcases hRef with ⟨q, hpq, rfl⟩
+  rcases h.row_klDiv_le_outputPrior_bound q with ⟨B, hB_fin, hB⟩
+  have hp_rows : ∀ᵐ a ∂p.toMeasure, k a ≪ (outputPrior k q).toMeasure := by
+    rw [ae_iff]
+    exact hpq (by simpa [ae_iff] using h.ae_row_absolutelyContinuous_outputPrior q)
+  have h_ac :
+      p.toMeasure ⊗ₘ k ≪ p.toMeasure ⊗ₘ Kernel.const α (outputPrior k q).toMeasure :=
+    Measure.AbsolutelyContinuous.compProd_right hp_rows
+  have h_le :
+      InformationTheory.klDiv (p.toMeasure ⊗ₘ k)
+          (p.toMeasure ⊗ₘ Kernel.const α (outputPrior k q).toMeasure) ≤
+        B := by
+    rw [ProbabilityTheory.klDiv_compProd_right (μ := p.toMeasure)
+      (κ := k) (η := Kernel.const α (outputPrior k q).toMeasure) h_ac]
+    calc
+      ∫⁻ a, InformationTheory.klDiv (k a) ((Kernel.const α (outputPrior k q).toMeasure) a)
+          ∂p.toMeasure ≤
+        ∫⁻ _, B ∂p.toMeasure := by
+          refine lintegral_mono ?_
+          intro a
+          simpa using hB a
+      _ = B := by simp
+  exact ne_top_of_le_ne_top hB_fin h_le
 
 end OutputPrior
 
