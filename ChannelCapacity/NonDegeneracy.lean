@@ -38,16 +38,22 @@ def RowSeparating (k : Kernel α β) : Prop :=
 def InjectivePriorPushforward (k : Kernel α β) [IsMarkovKernel k] : Prop :=
   Function.Injective (priorPushforward k)
 
+/-- Reference measures needed by the strict-concavity proof: output marginals of priors that
+dominate the given prior. -/
+def OutputMarginalReference (k : Kernel α β) [IsMarkovKernel k]
+    (p : ProbabilityMeasure α) (ν : Measure β) : Prop :=
+  ∃ q : ProbabilityMeasure α, p.toMeasure ≪ q.toMeasure ∧ ν = (outputPrior k q).toMeasure
+
 /-- Measure-theoretic non-degeneracy bundle for the capacity theorem. Each prior's rows are
 absolutely continuous with respect to the induced output marginal, and the joint KL divergence is
-finite against any reference measure that dominates the rows for that prior. The chain-rule field
-is the extra bridge needed for strict concavity: it isolates the positive output-marginal
+finite against the output-marginal references used in the strict-concavity argument. The chain-rule
+field is the extra bridge needed for strict concavity: it isolates the positive output-marginal
 correction term against an arbitrary dominating reference. -/
 structure WellConditionedForCapacity (k : Kernel α β) [IsMarkovKernel k] : Prop where
   hRowAC : ∀ p : ProbabilityMeasure α,
     ∀ᵐ x ∂p.toMeasure, k x ≪ (outputPrior k p).toMeasure
   hFiniteRefKL : ∀ (p : ProbabilityMeasure α) (ν : Measure β),
-    (∀ᵐ x ∂p.toMeasure, k x ≪ ν) →
+    OutputMarginalReference k p ν →
       InformationTheory.klDiv (p.toMeasure ⊗ₘ k) (p.toMeasure ⊗ₘ Kernel.const _ ν) ≠ ∞
   hChainRule : ∀ (p : ProbabilityMeasure α) (ν : Measure β),
     (∀ᵐ x ∂p.toMeasure, k x ≪ ν) →
@@ -97,6 +103,11 @@ theorem id_injectivePriorPushforward :
     Kernel.InjectivePriorPushforward (Kernel.id : Kernel α α) := by
   intro p q hpq
   simpa using hpq
+
+theorem outputMarginalReference_self
+    (k : Kernel α β) [IsMarkovKernel k] (p : ProbabilityMeasure α) :
+    Kernel.OutputMarginalReference k p (outputPrior k p).toMeasure := by
+  exact ⟨p, Measure.AbsolutelyContinuous.rfl, rfl⟩
 
 end Kernel
 

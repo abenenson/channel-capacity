@@ -216,21 +216,30 @@ private theorem mutualInformation_strictlyConcave_aux
       Kr = ∫⁻ x, InformationTheory.klDiv (k x) ν ∂r.toMeasure := by
     apply klDiv_compProd_right
     exact Measure.AbsolutelyContinuous.compProd_right hr_rows
-  have hKp_fin : Kp ≠ ∞ := hWC.hFiniteRefKL p ν hp_rows
-  have hKq_fin : Kq ≠ ∞ := hWC.hFiniteRefKL q ν hq_rows
-  have hKr_fin : Kr ≠ ∞ := hWC.hFiniteRefKL r ν hr_rows
+  have hν_ref_p : Kernel.OutputMarginalReference k p ν := by
+    exact ⟨r, hp_ac_r, rfl⟩
+  have hν_ref_q : Kernel.OutputMarginalReference k q ν := by
+    exact ⟨r, hq_ac_r, rfl⟩
+  have hν_ref_r : Kernel.OutputMarginalReference k r ν := by
+    exact Kernel.outputMarginalReference_self k r
+  have hKp_fin : Kp ≠ ∞ := hWC.hFiniteRefKL p ν hν_ref_p
+  have hKq_fin : Kq ≠ ∞ := hWC.hFiniteRefKL q ν hν_ref_q
+  have hKr_fin : Kr ≠ ∞ := hWC.hFiniteRefKL r ν hν_ref_r
   have hMIp_fin :
       InformationTheory.klDiv (jointLaw k p).toMeasure (independentJointLaw k p).toMeasure ≠ ∞ := by
     simpa [independentJointLaw_toMeasure] using
-      hWC.hFiniteRefKL p (outputPrior k p).toMeasure (hWC.hRowAC p)
+      hWC.hFiniteRefKL p (outputPrior k p).toMeasure
+        (Kernel.outputMarginalReference_self k p)
   have hMIq_fin :
       InformationTheory.klDiv (jointLaw k q).toMeasure (independentJointLaw k q).toMeasure ≠ ∞ := by
     simpa [independentJointLaw_toMeasure] using
-      hWC.hFiniteRefKL q (outputPrior k q).toMeasure (hWC.hRowAC q)
+      hWC.hFiniteRefKL q (outputPrior k q).toMeasure
+        (Kernel.outputMarginalReference_self k q)
   have hMIr_fin :
       InformationTheory.klDiv (jointLaw k r).toMeasure (independentJointLaw k r).toMeasure ≠ ∞ := by
     simpa [independentJointLaw_toMeasure] using
-      hWC.hFiniteRefKL r (outputPrior k r).toMeasure (hWC.hRowAC r)
+      hWC.hFiniteRefKL r (outputPrior k r).toMeasure
+        (Kernel.outputMarginalReference_self k r)
   have hChain_p :
       Kp =
         InformationTheory.klDiv
