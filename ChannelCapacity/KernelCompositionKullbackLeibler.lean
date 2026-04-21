@@ -15,6 +15,13 @@ import Mathlib.Probability.Kernel.RadonNikodym
 This file contains generic lemmas about Kullback-Leibler divergence and Radon-Nikodym derivatives
 for composition products of measures and kernels.
 
+It is designed to sit next to
+`Mathlib/Probability/Kernel/Composition/RadonNikodym.lean` and
+`Mathlib/InformationTheory/KullbackLeibler/ChainRule.lean`.
+The theorem `rnDeriv_compProd_right` supplies the kernel-only Radon-Nikodym description that is
+left as a TODO in the former file, while `klDiv_compProd_right` packages the corresponding
+pointwise-integral formula for Kullback-Leibler divergence.
+
 ## Main statements
 
 * `InformationTheory.klDiv_map_measurableEquiv`: Kullback-Leibler divergence is invariant under a
@@ -24,8 +31,9 @@ for composition products of measures and kernels.
 * `ProbabilityTheory.klDiv_compProd_right`: the Kullback-Leibler divergence
   `klDiv (μ ⊗ₘ κ) (μ ⊗ₘ η)` is the integral of the pointwise kernel divergences.
 
-The last two lemmas complement `Mathlib/Probability/Kernel/Composition/RadonNikodym.lean`, where
-the corresponding Radon-Nikodym derivative with different left measures is already available.
+The last two lemmas complement the existing composition-product Radon-Nikodym and KL chain-rule
+infrastructure in Mathlib, where the mixed-left-measure and additive chain-rule statements are
+already available.
 -/
 
 open MeasureTheory ProbabilityTheory
