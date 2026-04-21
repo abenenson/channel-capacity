@@ -89,8 +89,8 @@ with the same output law.
 - `ChannelCapacity/NonDegeneracy.lean`: injective pushforward and row separation
 - `ChannelCapacity/StrictConcavity.lean`: strict concavity on probability measures
 - `ChannelCapacity/Capacity.lean`: capacity and uniqueness packaging
-- `ChannelCapacity/ForMathlib/KernelCompositionKullbackLeibler.lean`: generic KL/kernel lemmas
-  extracted toward a standalone Mathlib PR
+- `ChannelCapacity/KernelCompositionKullbackLeibler.lean`: generic KL/kernel lemmas with no
+  channel-specific dependencies, extracted toward a standalone Mathlib PR
 - `ChannelCapacity/Counterexample.lean`: permutation-channel counterexample, not re-exported by
   `ChannelCapacity`
 

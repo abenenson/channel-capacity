@@ -12,10 +12,12 @@ import Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym
 import Mathlib.Probability.Kernel.RadonNikodym
 
 /-!
-# Kullback-Leibler divergence and composition products
+# Kullback-Leibler divergence and kernel composition products
 
 This file contains generic lemmas about Kullback-Leibler divergence and Radon-Nikodym derivatives
-for composition products of measures and kernels.
+for composition products of measures and kernels. These lemmas are used by the channel-capacity
+development, but they are stated without channel-specific dependencies and are intended to be
+reasonable Mathlib upstream candidates in their own right.
 
 ## Main statements
 

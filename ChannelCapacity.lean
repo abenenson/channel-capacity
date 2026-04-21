@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Benenson
 -/
 import ChannelCapacity.Basic
+import ChannelCapacity.KernelCompositionKullbackLeibler
 import ChannelCapacity.ChainRule
 import ChannelCapacity.NonDegeneracy
 import ChannelCapacity.StrictConcavity

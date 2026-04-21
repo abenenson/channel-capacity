@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Benenson
 -/
 import ChannelCapacity.Basic
-import ChannelCapacity.ForMathlib.KernelCompositionKullbackLeibler
+import ChannelCapacity.KernelCompositionKullbackLeibler
 
 import Mathlib.InformationTheory.KullbackLeibler.ChainRule
 import Mathlib.Probability.Kernel.CompProdEqIff
