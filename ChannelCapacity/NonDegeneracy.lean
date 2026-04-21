@@ -56,7 +56,7 @@ structure WellConditionedForCapacity (k : Kernel α β) [IsMarkovKernel k] : Pro
     OutputMarginalReference k p ν →
       InformationTheory.klDiv (p.toMeasure ⊗ₘ k) (p.toMeasure ⊗ₘ Kernel.const _ ν) ≠ ∞
   hChainRule : ∀ (p : ProbabilityMeasure α) (ν : Measure β),
-    (∀ᵐ x ∂p.toMeasure, k x ≪ ν) →
+    OutputMarginalReference k p ν →
       InformationTheory.klDiv (jointLaw k p).toMeasure (p.toMeasure ⊗ₘ Kernel.const _ ν) =
         InformationTheory.klDiv (jointLaw k p).toMeasure (independentJointLaw k p).toMeasure +
           InformationTheory.klDiv (outputPrior k p).toMeasure ν

@@ -246,19 +246,19 @@ private theorem mutualInformation_strictlyConcave_aux
             (jointLaw k p).toMeasure
             (independentJointLaw k p).toMeasure +
           Dp := by
-    simpa [Kp, Dp] using hWC.hChainRule p ν hp_rows
+    simpa [Kp, Dp] using hWC.hChainRule p ν hν_ref_p
   have hChain_q :
       Kq =
         InformationTheory.klDiv
             (jointLaw k q).toMeasure
             (independentJointLaw k q).toMeasure +
           Dq := by
-    simpa [Kq, Dq] using hWC.hChainRule q ν hq_rows
+    simpa [Kq, Dq] using hWC.hChainRule q ν hν_ref_q
   have hChain_r :
       Kr =
         InformationTheory.klDiv (jointLaw k r).toMeasure (independentJointLaw k r).toMeasure +
           InformationTheory.klDiv (outputPrior k r).toMeasure ν := by
-    simpa [Kr] using hWC.hChainRule r ν hr_rows
+    simpa [Kr] using hWC.hChainRule r ν hν_ref_r
   have hDp_fin : Dp ≠ ∞ := by
     intro hDp_top
     have : Kp = ∞ := by

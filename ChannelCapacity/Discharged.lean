@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Benenson
 -/
 import ChannelCapacity.NonDegeneracy
+import ChannelCapacity.ChainRule
 import ChannelCapacity.KernelCompositionKullbackLeibler
 
 import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
@@ -337,6 +338,27 @@ theorem hFiniteRefKL_of_continuousPositiveDensity
           simpa using hB a
       _ = B := by simp
   exact ne_top_of_le_ne_top hB_fin h_le
+
+omit [TopologicalSpace β] [CompactSpace α] [CompactSpace β] [PolishSpace β] [BorelSpace β]
+  [OpensMeasurableSpace α] [OpensMeasurableSpace β] [IsFiniteMeasure ν] in
+theorem hChainRule_of_outputMarginalReference
+    (p : ProbabilityMeasure α) (ν' : Measure β)
+    (hRef : Kernel.OutputMarginalReference k p ν') :
+    InformationTheory.klDiv (jointLaw k p).toMeasure (p.toMeasure ⊗ₘ Kernel.const _ ν') =
+      InformationTheory.klDiv (jointLaw k p).toMeasure (independentJointLaw k p).toMeasure +
+        InformationTheory.klDiv (outputPrior k p).toMeasure ν' := by
+  rcases hRef with ⟨q, -, rfl⟩
+  letI : Nonempty α := p.nonempty
+  simpa using
+    klDiv_mutualInformation_chain (k := k) (p := p) (ν := (outputPrior k q).toMeasure)
+
+theorem wellConditionedForCapacity_of_continuousPositiveDensity
+    (h : ContinuousPositiveDensity k ν) :
+    Kernel.WellConditionedForCapacity k := by
+  refine
+    { hRowAC := h.ae_row_absolutelyContinuous_outputPrior
+      hFiniteRefKL := h.hFiniteRefKL_of_continuousPositiveDensity
+      hChainRule := hChainRule_of_outputMarginalReference (k := k) }
 
 end OutputPrior
 
