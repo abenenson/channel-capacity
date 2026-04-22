@@ -61,6 +61,18 @@ theorem eq_of_isMaxOn_univ_of_strictConcave
     simpa [hRewrite] using hMixGt
   exact (not_lt_of_ge hMixLe) hMixGt'
 
+theorem convexCombination_comm (p q : ProbabilityMeasure α) (t : NNReal) (ht : t ≤ 1) :
+    ProbabilityMeasure.convexCombination p q t ht =
+      ProbabilityMeasure.convexCombination q p (1 - t) (tsub_le_self) := by
+  apply ProbabilityMeasure.toMeasure_injective
+  ext s hs
+  rw [ProbabilityMeasure.convexCombination_apply _ _ _ _ hs,
+    ProbabilityMeasure.convexCombination_apply _ _ _ _ hs]
+  have htsub : ((((1 : NNReal) - ((1 : NNReal) - t) : NNReal) : NNReal) : ENNReal) =
+      (t : ENNReal) := by
+    exact_mod_cast tsub_tsub_cancel_of_le ht
+  rw [htsub, add_comm]
+
 theorem eq_left_of_convexCombination_eq {p q : ProbabilityMeasure α} {t : NNReal}
     (ht_lt_one : t < 1)
     (h : ProbabilityMeasure.convexCombination p q t (le_of_lt ht_lt_one) = p) :
@@ -102,36 +114,16 @@ theorem eq_right_of_convexCombination_eq {p q : ProbabilityMeasure α} {t : NNRe
     (ht_pos : 0 < t) (ht_lt_one : t < 1)
     (h : ProbabilityMeasure.convexCombination p q t (le_of_lt ht_lt_one) = q) :
     p = q := by
-  apply ProbabilityMeasure.toMeasure_injective
-  ext s hs
-  have hs_eq : (ProbabilityMeasure.convexCombination p q t (le_of_lt ht_lt_one)).toMeasure s =
-      q.toMeasure s := by
-    simpa using congrArg (fun μ : ProbabilityMeasure α => μ.toMeasure s) h
-  rw [ProbabilityMeasure.convexCombination_apply _ _ _ _ hs] at hs_eq
-  have hp_fin : p.toMeasure s ≠ ∞ := measure_ne_top _ _
-  have hq_fin : q.toMeasure s ≠ ∞ := measure_ne_top _ _
-  have hleft_fin : ((t : ENNReal) * p.toMeasure s) ≠ ∞ := by
-    exact ENNReal.mul_ne_top (by simp) hp_fin
-  have hright_fin : ((((1 : NNReal) - t : NNReal) : ENNReal) * q.toMeasure s) ≠ ∞ := by
-    exact ENNReal.mul_ne_top (by simp) hq_fin
-  have hs_real := congrArg ENNReal.toReal hs_eq
-  rw [ENNReal.toReal_add hleft_fin hright_fin, ENNReal.toReal_mul, ENNReal.toReal_mul] at hs_real
-  have hcoeff : (1 - (t : ENNReal)).toReal = 1 - (t : ℝ) := by
-    rw [ENNReal.toReal_sub_of_le]
-    · simp
-    · exact_mod_cast (le_of_lt ht_lt_one)
-    · simp
-  have hs_real' : (t : ℝ) * (p.toMeasure s).toReal = (t : ℝ) * (q.toMeasure s).toReal := by
-    have hs_real_simp :
-        (t : ℝ) * (p.toMeasure s).toReal + (1 - (t : ENNReal)).toReal * (q.toMeasure s).toReal =
-          (q.toMeasure s).toReal := by
-      simpa using hs_real
-    rw [hcoeff] at hs_real_simp
-    linarith
-  have ht_ne : (t : ℝ) ≠ 0 := by exact_mod_cast (ne_of_gt ht_pos)
-  have hs_toReal : (p.toMeasure s).toReal = (q.toMeasure s).toReal := by
-    exact mul_left_cancel₀ ht_ne hs_real'
-  exact (ENNReal.toReal_eq_toReal_iff' hp_fin hq_fin).mp hs_toReal
+  have htsub_lt_one : (1 : NNReal) - t < 1 := by
+    simpa using tsub_lt_self (show 0 < (1 : NNReal) by simp) ht_pos
+  have hswap :
+      ProbabilityMeasure.convexCombination q p (1 - t) (tsub_le_self) = q := by
+    calc
+      ProbabilityMeasure.convexCombination q p (1 - t) (tsub_le_self) =
+          ProbabilityMeasure.convexCombination p q t (le_of_lt ht_lt_one) := by
+            simpa using (ProbabilityMeasure.convexCombination_comm p q t (le_of_lt ht_lt_one)).symm
+      _ = q := h
+  exact eq_left_of_convexCombination_eq (p := q) (q := p) htsub_lt_one hswap
 
 theorem convexCombination_ne_left {p q : ProbabilityMeasure α} (h_ne : p ≠ q) {t : NNReal}
     (ht_lt_one : t < 1) :
