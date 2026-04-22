@@ -11,7 +11,7 @@
 #   3. No broad `import Mathlib` without qualification
 #   4. No blank lines inside proof blocks
 #   5. Lines ≤ 100 chars
-#   6. No AI co-author credits in git history
+#   6. No automated co-author trailers in git history
 #   7. No `by` on its own line
 #   8. Module header `/-! ... -/` present
 #   9. No `λ` in code
@@ -29,7 +29,7 @@
 #   - Run without --lean for fast pre-commit gating (< 1s per file)
 #   - Run with --lean during PR prep (requires lake env lean, ~minutes per file)
 #   - The --lean checks require a built Mathlib olean cache in .lake/
-#   - Does NOT check proof quality or tactic style (human/review concern)
+#   - Does NOT check proof quality or tactic style
 
 set -euo pipefail
 
@@ -167,13 +167,13 @@ check_line_length() {
   fi
 }
 
-# ── Check 6: no AI co-author credits in git history ──────────────────────────
+# ── Check 6: no automated co-author trailers in git history ──────────────────
 check_no_ai_coauthor() {
   local f="$1"
   local rel="${f#"$REPO_ROOT/"}"
   if git -C "$REPO_ROOT" log --all --follow --format="%B" -- "$rel" 2>/dev/null \
       | grep -qi "Co-Authored-By.*\(claude\|anthropic\|openai\|codex\|gpt\|gemini\)"; then
-    fail "$f: AI co-author credit found in git history — rewrite history before submitting"
+    fail "$f: automated co-author trailer found in git history"
   fi
 }
 
@@ -285,7 +285,7 @@ if [[ $FAILURES -eq 0 && $WARNINGS -eq 0 ]]; then
   echo "✓ All checks passed (${#LEAN_FILES[@]} file(s))"
   exit 0
 elif [[ $FAILURES -eq 0 ]]; then
-  echo "⚠ $WARNINGS warning(s), 0 failures — review before submitting"
+  echo "⚠ $WARNINGS warning(s), 0 failures"
   exit 0
 else
   echo "✗ $FAILURES failure(s), $WARNINGS warning(s) — fix before Mathlib PR"

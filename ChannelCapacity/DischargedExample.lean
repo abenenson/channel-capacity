@@ -13,7 +13,7 @@ import Mathlib.Probability.ProbabilityMassFunction.Constructions
 /-!
 # ChannelCapacity.DischargedExample
 
-Worked non-vacuity witness for the discharged capacity theorem.
+Worked example for the discharged capacity theorem.
 
 This file builds a concrete positive full-rank `Fin 2 → Fin 2` channel with counting-measure
 reference, instantiates `Kernel.ContinuousPositiveDensity`, and applies

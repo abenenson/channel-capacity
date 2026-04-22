@@ -13,7 +13,7 @@ The library has three theorem layers:
   for future upstream generalization.
 
 > **Status:** Lean `v4.29.1`, Mathlib only, warning-free build, zero `sorry`/`admit`/axiom.
-> The finite theorem below is the current Mathlib-facing upstream candidate; the discharged theorem
+> The finite theorem below is the most immediate Mathlib upstream candidate; the discharged theorem
 > is the strongest concrete measure-theoretic result in the repo; the general theorem is retained as
 > the broader companion result.
 
@@ -71,7 +71,8 @@ theorem exists_unique_capacity_achieving_prior
 ```
 
 This remains in `ChannelCapacity.Capacity` as the measure-theoretic companion theorem. It is useful
-as a staging result, but the finite theorem above is the current Mathlib-facing upstream candidate.
+as an abstract existence-and-uniqueness packaging result, while the finite theorem above is the
+most immediate Mathlib upstream candidate.
 
 ## Discharged theorem
 
@@ -121,7 +122,7 @@ with the same output law.
   fully discharged finite uniqueness theorem
 - `ChannelCapacity/Discharged.lean`: concrete compact-Polish density class and the discharged
   measure-theoretic uniqueness theorem
-- `ChannelCapacity/DischargedExample.lean`: worked non-vacuity witness for the discharged theorem,
+- `ChannelCapacity/DischargedExample.lean`: worked example for the discharged theorem,
   not re-exported by `ChannelCapacity`
 - `ChannelCapacity/NonDegeneracy.lean`: injective pushforward and row separation
 - `ChannelCapacity/StrictConcavity.lean`: direct strict-concavity and uniqueness lemmas phrased

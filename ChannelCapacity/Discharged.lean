@@ -24,15 +24,15 @@ abstract `WellConditionedForCapacity` bundle (`hRowAC`, `hFiniteRefKL`, and `hCh
 compactness side of the ambient maximization argument, then derives the top-level theorem
 `exists_unique_capacity_achieving_prior_discharged` with no external bundle hypotheses.
 
-At the current frontier, upper semicontinuity of
+Currently, upper semicontinuity of
 `p ↦ mutualInformation p k` is carried as a field of the concrete class rather than derived from
 the density hypotheses alone. The intended follow-up is a general theorem
 `upperSemicontinuous_mutualInformation_of_continuousPositiveDensity` proved from the density
 assumptions plus compactness of `α × β`.
 
-The worked non-vacuity witness lives in `ChannelCapacity.DischargedExample`: a positive full-rank
-`Fin 2` channel with counting-measure reference, an explicit `ContinuousPositiveDensity`
-inhabitant, and a concrete application of `exists_unique_capacity_achieving_prior_discharged`.
+The worked example lives in `ChannelCapacity.DischargedExample`: a positive full-rank `Fin 2`
+channel with counting-measure reference, an explicit `ContinuousPositiveDensity` inhabitant, and a
+concrete application of `exists_unique_capacity_achieving_prior_discharged`.
 -/
 
 open MeasureTheory
