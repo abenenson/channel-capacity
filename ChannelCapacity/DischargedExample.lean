@@ -10,6 +10,16 @@ import Mathlib.MeasureTheory.Measure.Count
 import Mathlib.Probability.ProbabilityMassFunction.Basic
 import Mathlib.Probability.ProbabilityMassFunction.Constructions
 
+/-!
+# ChannelCapacity.DischargedExample
+
+Worked non-vacuity witness for the discharged capacity theorem.
+
+This file builds a concrete positive full-rank `Fin 2 → Fin 2` channel with counting-measure
+reference, instantiates `Kernel.ContinuousPositiveDensity`, and applies
+`exists_unique_capacity_achieving_prior_discharged`.
+-/
+
 open MeasureTheory
 open ProbabilityTheory
 open scoped ENNReal NNReal

@@ -2,16 +2,20 @@
 
 Lean 4 formalization of **Shannon capacity-achieving prior uniqueness** for Markov kernels.
 
-The library has two layers:
+The library has three theorem layers:
 
 - a **finite-alphabet theorem** with compactness, continuity, and strict concavity discharged
   internally on Mathlib's canonical weak topology for `ProbabilityMeasure`;
+- a **concrete discharged theorem** for compact-Polish channels with a common strictly positive
+  jointly continuous density, discharging the abstract nondegeneracy bundle and compactness
+  hypotheses internally;
 - a broader **measure-theoretic packaging theorem** that isolates the abstract hypotheses needed
   for future upstream generalization.
 
 > **Status:** Lean `v4.29.1`, Mathlib only, warning-free build, zero `sorry`/`admit`/axiom.
-> The finite theorem below is the current Mathlib-facing upstream candidate; the general theorem is
-> retained as a broader measure-theoretic companion result.
+> The finite theorem below is the current Mathlib-facing upstream candidate; the discharged theorem
+> is the strongest concrete measure-theoretic result in the repo; the general theorem is retained as
+> the broader companion result.
 
 ## Main objects
 
@@ -69,6 +73,31 @@ theorem exists_unique_capacity_achieving_prior
 This remains in `ChannelCapacity.Capacity` as the measure-theoretic companion theorem. It is useful
 as a staging result, but the finite theorem above is the current Mathlib-facing upstream candidate.
 
+## Discharged theorem
+
+```lean
+theorem exists_unique_capacity_achieving_prior_discharged
+    {α β : Type*}
+    [MeasurableSpace α] [MeasurableSpace β]
+    [TopologicalSpace α] [TopologicalSpace β]
+    [CompactSpace α] [CompactSpace β]
+    [PolishSpace α] [PolishSpace β]
+    [BorelSpace α] [BorelSpace β]
+    [OpensMeasurableSpace α] [OpensMeasurableSpace β]
+    [MeasurableSpace.CountableOrCountablyGenerated α β]
+    [Nonempty α]
+    (k : Kernel α β) [IsMarkovKernel k]
+    (ν : Measure β) [IsFiniteMeasure ν]
+    (hDensity : Kernel.ContinuousPositiveDensity k ν)
+    (hInj : Kernel.InjectivePriorPushforward k) :
+    ∃! p : ProbabilityMeasure α, mutualInformation p k = channelCapacity k
+```
+
+This theorem lives in `ChannelCapacity.Discharged`. It proves the generic capacity theorem for a
+concrete compact-Polish density class. At present, upper semicontinuity of
+`p ↦ mutualInformation p k` is still carried as a field of `Kernel.ContinuousPositiveDensity`,
+rather than derived solely from the density assumptions.
+
 ## Counterexample
 
 `ChannelCapacity.Counterexample` is kept as an explicit opt-in import rather than part of the
@@ -90,6 +119,10 @@ with the same output law.
   `ProbabilityMeasure` an affine-space structure
 - `ChannelCapacity/Finite.lean`: finite entropy formula, continuity, strict concavity, and the
   fully discharged finite uniqueness theorem
+- `ChannelCapacity/Discharged.lean`: concrete compact-Polish density class and the discharged
+  measure-theoretic uniqueness theorem
+- `ChannelCapacity/DischargedExample.lean`: worked non-vacuity witness for the discharged theorem,
+  not re-exported by `ChannelCapacity`
 - `ChannelCapacity/NonDegeneracy.lean`: injective pushforward and row separation
 - `ChannelCapacity/StrictConcavity.lean`: direct strict-concavity and uniqueness lemmas phrased
   along `ProbabilityMeasure.convexCombination`

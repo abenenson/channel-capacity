@@ -11,13 +11,12 @@ import ChannelCapacity.StrictConcavity
 import ChannelCapacity.Capacity
 import ChannelCapacity.Finite
 import ChannelCapacity.Discharged
-import ChannelCapacity.DischargedExample
 
 /-!
 # ChannelCapacity
 
 Top-level imports for the main channel-capacity development.
 
-The finite counterexample file is intentionally not re-exported here; import
-`ChannelCapacity.Counterexample` explicitly when needed.
+Example files are intentionally not re-exported here; import
+`ChannelCapacity.Counterexample` or `ChannelCapacity.DischargedExample` explicitly when needed.
 -/
