@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# verify-mathlib-bar.sh — enforce Mathlib PR quality bar on new Lean files
+# verify.sh — repository verification checks for Lean files
 #
 # Usage:
-#   scripts/verify-mathlib-bar.sh [--lean] PATH...
+#   scripts/verify.sh [--lean] PATH...
 #
 # Checks:
 #   (mechanical, always run)
@@ -16,17 +16,10 @@
 #   8. Module header `/-! ... -/` present
 #   9. No `λ` in code
 #  10. No ` $ ` for function application
-#   (mechanical, always run)
-#   1. Single copyright header per file, correct format
-#   2. No `(show T from x)` coercion pattern
-#   3. No broad `import Mathlib` without qualification
-#   4. No blank lines inside proof blocks (between `by` and next decl)
-#   5. Lines ≤ 100 chars
-#   6. No AI co-author credits in git history for these files
 #
 #   (lean-required, only with --lean flag)
-#   7. `#lint` passes (docBlame, naming, style linters)
-#   8. Zero sorries
+#  11. `#lint` passes (docBlame, naming, style linters)
+#  12. Zero sorries
 #
 # Exit codes:
 #   0  all checks pass
