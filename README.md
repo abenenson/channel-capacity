@@ -2,20 +2,39 @@
 
 Lean 4 formalization of **Shannon capacity-achieving prior uniqueness** for Markov kernels.
 
-The library has three theorem layers:
+The library has three aligned theorem layers:
 
 - a **finite-alphabet theorem** with compactness, continuity, and strict concavity discharged
-  internally on Mathlib's canonical weak topology for `ProbabilityMeasure`;
+  internally on Mathlib's canonical weak topology for `ProbabilityMeasure`
 - a **concrete discharged theorem** for compact-Polish channels with a common strictly positive
-  jointly continuous density, discharging the abstract nondegeneracy bundle and compactness
-  hypotheses internally;
+  jointly continuous density
 - a broader **measure-theoretic packaging theorem** that isolates the abstract hypotheses needed
-  for future upstream generalization.
+  for future generalization
 
 > **Status:** Lean `v4.29.1`, Mathlib only, warning-free build, zero `sorry`/`admit`/axiom.
-> The finite theorem below is the most immediate Mathlib upstream candidate; the discharged theorem
-> is the strongest concrete measure-theoretic result in the repo; the general theorem is retained as
-> the broader companion result.
+> The finite theorem below is the most self-contained result; the discharged theorem is the
+> strongest concrete measure-theoretic result in the repo; the general theorem is retained as the
+> broader companion result.
+
+For the mathematical exposition — why the three layers, what is discharged vs. carried, and what the counterexample proves — see [docs/overview.md](docs/overview.md).
+
+## Build
+
+```bash
+lake build
+./scripts/verify.sh ChannelCapacity
+```
+
+## Usage
+
+```lean
+import ChannelCapacity
+```
+
+Example modules are opt-in:
+
+- `import ChannelCapacity.Counterexample`
+- `import ChannelCapacity.DischargedExample`
 
 ## Main objects
 
@@ -54,26 +73,6 @@ This theorem lives in `ChannelCapacity.Finite`. It proves uniqueness directly fr
   `MeasureTheory.Measure.Prokhorov`;
 - injectivity of the prior pushforward map derived from `Kernel.RowMatrixFullRank`.
 
-## General theorem
-
-```lean
-theorem exists_unique_capacity_achieving_prior
-    {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
-    [MeasurableSpace.CountableOrCountablyGenerated α β]
-    (k : Kernel α β) [IsMarkovKernel k]
-    (h : Kernel.InjectivePriorPushforward k)
-    (hWC : Kernel.WellConditionedForCapacity k)
-    [TopologicalSpace (ProbabilityMeasure α)]
-    (hNonempty : (Set.univ : Set (ProbabilityMeasure α)).Nonempty)
-    (hCompact : IsCompact (Set.univ : Set (ProbabilityMeasure α)))
-    (hUsc : UpperSemicontinuous fun p : ProbabilityMeasure α => mutualInformation p k) :
-    ∃! p : ProbabilityMeasure α, mutualInformation p k = channelCapacity k
-```
-
-This remains in `ChannelCapacity.Capacity` as the measure-theoretic companion theorem. It is useful
-as an abstract existence-and-uniqueness packaging result, while the finite theorem above is the
-most immediate Mathlib upstream candidate.
-
 ## Discharged theorem
 
 ```lean
@@ -98,6 +97,26 @@ This theorem lives in `ChannelCapacity.Discharged`. It proves the generic capaci
 concrete compact-Polish density class. At present, upper semicontinuity of
 `p ↦ mutualInformation p k` is still carried as a field of `Kernel.ContinuousPositiveDensity`,
 rather than derived solely from the density assumptions.
+
+## General theorem
+
+```lean
+theorem exists_unique_capacity_achieving_prior
+    {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
+    [MeasurableSpace.CountableOrCountablyGenerated α β]
+    (k : Kernel α β) [IsMarkovKernel k]
+    (h : Kernel.InjectivePriorPushforward k)
+    (hWC : Kernel.WellConditionedForCapacity k)
+    [TopologicalSpace (ProbabilityMeasure α)]
+    (hNonempty : (Set.univ : Set (ProbabilityMeasure α)).Nonempty)
+    (hCompact : IsCompact (Set.univ : Set (ProbabilityMeasure α)))
+    (hUsc : UpperSemicontinuous fun p : ProbabilityMeasure α => mutualInformation p k) :
+    ∃! p : ProbabilityMeasure α, mutualInformation p k = channelCapacity k
+```
+
+This remains in `ChannelCapacity.Capacity` as the measure-theoretic companion theorem. It is useful
+as an abstract existence-and-uniqueness packaging result, while the finite theorem above is the
+most self-contained theorem.
 
 ## Counterexample
 
@@ -129,7 +148,7 @@ with the same output law.
   along `ProbabilityMeasure.convexCombination`
 - `ChannelCapacity/Capacity.lean`: capacity and uniqueness packaging
 - `ChannelCapacity/KernelCompositionKullbackLeibler.lean`: generic KL/kernel lemmas with no
-  channel-specific dependencies, extracted toward a standalone Mathlib PR
+  channel-specific dependencies
 - `ChannelCapacity/Counterexample.lean`: permutation-channel counterexample, not re-exported by
   `ChannelCapacity`
 
