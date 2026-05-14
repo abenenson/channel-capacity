@@ -39,13 +39,13 @@ noncomputable def uniformTriple {α : Type*} [MeasurableSpace α] (a b c : α) :
       have h : (1 : ℝ) / 3 ≤ 1 := by norm_num
       exact_mod_cast h)
 
-private theorem permutationWeightSum :
+private lemma permutationWeightSum :
     (1 / 2 : ℝ≥0∞) + 1 / 3 + 1 / 6 = 1 := by
   have h : ((1 / 2 : ℝ≥0) + 1 / 3 + 1 / 6 : ℝ≥0) = 1 := by
     norm_num
   exact (by simpa using congrArg (fun x : ℝ≥0 => (x : ℝ≥0∞)) h)
 
-private theorem prior₁_case0 :
+private lemma prior₁_case0 :
     (1 / 3 : ℝ≥0∞) * (1 / 2) + (1 - 1 / 3) * ((1 / 2) * (1 / 6) + (1 / 2) * (1 / 3)) =
       1 / 3 := by
   have h : ((1 / 3 : ℝ≥0) * (1 / 2) + ((1 : ℝ≥0) - 1 / 3) *
@@ -55,7 +55,7 @@ private theorem prior₁_case0 :
     norm_num
   exact (by simpa using congrArg (fun x : ℝ≥0 => (x : ℝ≥0∞)) h)
 
-private theorem prior₁_case1 :
+private lemma prior₁_case1 :
     (1 / 3 : ℝ≥0∞) * (1 / 3) + (1 - 1 / 3) * ((1 / 2) * (1 / 2) + (1 / 2) * (1 / 6)) =
       (1 - 1 / 3) * (1 / 2) := by
   have h : ((1 / 3 : ℝ≥0) * (1 / 3) + ((1 : ℝ≥0) - 1 / 3) *
@@ -65,7 +65,7 @@ private theorem prior₁_case1 :
     norm_num
   exact (by simpa using congrArg (fun x : ℝ≥0 => (x : ℝ≥0∞)) h)
 
-private theorem prior₁_case2 :
+private lemma prior₁_case2 :
     (1 / 3 : ℝ≥0∞) * (1 / 6) + (1 - 1 / 3) * ((1 / 2) * (1 / 3) + (1 / 2) * (1 / 2)) =
       (1 - 1 / 3) * (1 / 2) := by
   have h : ((1 / 3 : ℝ≥0) * (1 / 6) + ((1 : ℝ≥0) - 1 / 3) *
@@ -75,7 +75,7 @@ private theorem prior₁_case2 :
     norm_num
   exact (by simpa using congrArg (fun x : ℝ≥0 => (x : ℝ≥0∞)) h)
 
-private theorem prior₂_case1 :
+private lemma prior₂_case1 :
     (1 / 3 : ℝ≥0∞) * (1 / 6) + (1 - 1 / 3) * ((1 / 2) * (1 / 2) + (1 / 2) * (1 / 3)) =
       (1 - 1 / 3) * (1 / 2) := by
   have h : ((1 / 3 : ℝ≥0) * (1 / 6) + ((1 : ℝ≥0) - 1 / 3) *
@@ -85,7 +85,7 @@ private theorem prior₂_case1 :
     norm_num
   exact (by simpa using congrArg (fun x : ℝ≥0 => (x : ℝ≥0∞)) h)
 
-private theorem prior₂_case2 :
+private lemma prior₂_case2 :
     (1 / 3 : ℝ≥0∞) * (1 / 3) + (1 - 1 / 3) * ((1 / 2) * (1 / 6) + (1 / 2) * (1 / 2)) =
       (1 - 1 / 3) * (1 / 2) := by
   have h : ((1 / 3 : ℝ≥0) * (1 / 3) + ((1 : ℝ≥0) - 1 / 3) *
@@ -131,7 +131,7 @@ noncomputable def permutationRows : Fin 6 → ProbabilityMeasure (Fin 3) :=
   fun i => asProbabilityMeasure (rowPMF i)
 
 @[simp]
-theorem permutationRows_apply_singleton (i : Fin 6) (y : Fin 3) :
+lemma permutationRows_apply_singleton (i : Fin 6) (y : Fin 3) :
     (permutationRows i).toMeasure {y} = rowPMF i y := by
   simp [permutationRows, asProbabilityMeasure]
 
@@ -139,12 +139,12 @@ noncomputable def permutationKernel : Kernel (Fin 6) (Fin 3) :=
   Kernel.ofFunOfCountable fun i => (permutationRows i).toMeasure
 
 @[simp]
-theorem permutationKernel_apply (i : Fin 6) :
+lemma permutationKernel_apply (i : Fin 6) :
     permutationKernel i = (rowPMF i).toMeasure := by
   rfl
 
 @[simp]
-theorem permutationKernel_apply_singleton (i : Fin 6) (y : Fin 3) :
+lemma permutationKernel_apply_singleton (i : Fin 6) (y : Fin 3) :
     permutationKernel i {y} = rowPMF i y := by
   simp [permutationKernel_apply]
 
@@ -185,7 +185,7 @@ def rowCode : Fin 6 → Fin 3 → Rat
   | _, _ => 1 / 2
 
 set_option linter.style.nativeDecide false in
-theorem rowCode_injective : Function.Injective rowCode := by
+lemma rowCode_injective : Function.Injective rowCode := by
   native_decide
 
 def prior₁Code : Fin 6 → Rat
@@ -204,17 +204,17 @@ def outputCode (w : Fin 6 → Rat) : Fin 3 → Rat :=
   fun y => ∑ x, w x * rowCode x y
 
 set_option linter.style.nativeDecide false in
-theorem native_decide_counterexample :
+lemma native_decide_counterexample :
     prior₁Code ≠ prior₂Code ∧ outputCode prior₁Code = outputCode prior₂Code := by
   native_decide
 
-theorem prior_ne : prior₁ ≠ prior₂ := by
+lemma prior_ne : prior₁ ≠ prior₂ := by
   intro h
   have h0 := congrArg (fun p : ProbabilityMeasure (Fin 6) => p.toMeasure {0}) h
   simp [prior₁, prior₂, uniformTriple, ProbabilityMeasure.convexCombination_toMeasure,
     Measure.add_apply, Measure.smul_apply] at h0
 
-theorem pushforward_prior₁ :
+lemma pushforward_prior₁ :
     ChannelCapacity.Kernel.priorPushforward permutationKernel prior₁ = uniformOutput := by
   change ChannelCapacity.Kernel.priorPushforward permutationKernel (uniformTriple 0 3 4) =
     uniformOutput
@@ -240,7 +240,7 @@ theorem pushforward_prior₁ :
     simpa [one_div, add_comm, add_left_comm, add_assoc, mul_comm, mul_left_comm, mul_assoc] using
       prior₁_case2
 
-theorem pushforward_prior₂ :
+lemma pushforward_prior₂ :
     ChannelCapacity.Kernel.priorPushforward permutationKernel prior₂ = uniformOutput := by
   change ChannelCapacity.Kernel.priorPushforward permutationKernel (uniformTriple 1 2 5) =
     uniformOutput
@@ -271,7 +271,7 @@ theorem permutationKernel_not_injectivePriorPushforward :
   intro h
   exact prior_ne (h (pushforward_prior₁.trans pushforward_prior₂.symm))
 
-theorem rowPMF_injective : Function.Injective rowPMF := by
+lemma rowPMF_injective : Function.Injective rowPMF := by
   intro i j hij
   fin_cases i <;> fin_cases j
   all_goals try rfl

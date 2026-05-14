@@ -62,29 +62,29 @@ namespace ContinuousPositiveDensity
 
 variable {k : Kernel α β} [IsMarkovKernel k] [OpensMeasurableSpace α] {ν : Measure β}
 
-theorem row_eq_withDensity (h : ContinuousPositiveDensity k ν) (a : α) :
+lemma row_eq_withDensity (h : ContinuousPositiveDensity k ν) (a : α) :
     k a = ν.withDensity (fun b => (h.density a b : ENNReal)) :=
   h.eq_withDensity a
 
-theorem row_absolutelyContinuous_ref (h : ContinuousPositiveDensity k ν) (a : α) :
+lemma row_absolutelyContinuous_ref (h : ContinuousPositiveDensity k ν) (a : α) :
     k a ≪ ν := by
   rw [h.row_eq_withDensity a]
   simpa using MeasureTheory.withDensity_absolutelyContinuous ν
     (fun b => (h.density a b : ENNReal))
 
-theorem density_ne_zero (h : ContinuousPositiveDensity k ν) (a : α) (b : β) :
+lemma density_ne_zero (h : ContinuousPositiveDensity k ν) (a : α) (b : β) :
     h.density a b ≠ 0 :=
   ne_of_gt (h.density_pos a b)
 
-theorem density_ennreal_pos (h : ContinuousPositiveDensity k ν) (a : α) (b : β) :
+lemma density_ennreal_pos (h : ContinuousPositiveDensity k ν) (a : α) (b : β) :
     0 < (h.density a b : ENNReal) :=
   ENNReal.coe_pos.mpr (h.density_pos a b)
 
-theorem density_ennreal_ne_zero (h : ContinuousPositiveDensity k ν) (a : α) (b : β) :
+lemma density_ennreal_ne_zero (h : ContinuousPositiveDensity k ν) (a : α) (b : β) :
     (h.density a b : ENNReal) ≠ 0 :=
   ne_of_gt (h.density_ennreal_pos a b)
 
-theorem upperSemicontinuous_mutualInformation
+lemma upperSemicontinuous_mutualInformation
     (h : ContinuousPositiveDensity k ν) :
     UpperSemicontinuous fun p : ProbabilityMeasure α => mutualInformation p k :=
   h.mutualInformation_usc
@@ -95,7 +95,7 @@ variable [CompactSpace α] [CompactSpace β] [Nonempty α] [Nonempty β]
 
 /-- A strictly positive jointly continuous density on a compact product has a positive uniform lower
 bound and a finite uniform upper bound. -/
-theorem exists_uniform_density_bounds
+lemma exists_uniform_density_bounds
     (h : ContinuousPositiveDensity k ν) :
     ∃ c C : NNReal,
       0 < c ∧ ∀ a b, c ≤ h.density a b ∧ h.density a b ≤ C := by
@@ -135,7 +135,7 @@ noncomputable def outputDensity (h : ContinuousPositiveDensity k ν) (p : Probab
 
 set_option linter.unusedSectionVars false in
 omit [CompactSpace α] [CompactSpace β] [BorelSpace α] [BorelSpace β] in
-theorem aemeasurable_outputDensity (h : ContinuousPositiveDensity k ν) (p : ProbabilityMeasure α) :
+lemma aemeasurable_outputDensity (h : ContinuousPositiveDensity k ν) (p : ProbabilityMeasure α) :
     AEMeasurable (h.outputDensity p) ν := by
   have hbase :
       AEMeasurable
@@ -146,7 +146,7 @@ theorem aemeasurable_outputDensity (h : ContinuousPositiveDensity k ν) (p : Pro
 
 set_option linter.unusedSectionVars false in
 omit [CompactSpace α] [CompactSpace β] [BorelSpace α] [BorelSpace β] in
-theorem outputPrior_eq_withDensity_outputDensity
+lemma outputPrior_eq_withDensity_outputDensity
     (h : ContinuousPositiveDensity k ν) (p : ProbabilityMeasure α) :
     (outputPrior k p).toMeasure = ν.withDensity (h.outputDensity p) := by
   ext s hs
@@ -166,7 +166,7 @@ theorem outputPrior_eq_withDensity_outputDensity
 set_option linter.unusedSectionVars false in
 omit [CompactSpace β] [PolishSpace α] [PolishSpace β] [BorelSpace α] [BorelSpace β]
   [OpensMeasurableSpace β] [IsFiniteMeasure ν] in
-theorem outputDensity_pos (h : ContinuousPositiveDensity k ν) (p : ProbabilityMeasure α) (b : β) :
+lemma outputDensity_pos (h : ContinuousPositiveDensity k ν) (p : ProbabilityMeasure α) (b : β) :
     0 < h.outputDensity p b := by
   letI : Nonempty α := p.nonempty
   have hcont : Continuous fun a : α => h.density a b := by
@@ -190,7 +190,7 @@ theorem outputDensity_pos (h : ContinuousPositiveDensity k ν) (p : ProbabilityM
 
 set_option linter.unusedSectionVars false in
 omit [CompactSpace β] [BorelSpace α] [BorelSpace β] in
-theorem ae_row_absolutelyContinuous_outputPrior
+lemma ae_row_absolutelyContinuous_outputPrior
     (h : ContinuousPositiveDensity k ν) (p : ProbabilityMeasure α) :
     ∀ᵐ a ∂p.toMeasure, k a ≪ (outputPrior k p).toMeasure := by
   have hν_ac_out :
@@ -206,7 +206,7 @@ theorem ae_row_absolutelyContinuous_outputPrior
 
 set_option linter.unusedSectionVars false in
 omit [CompactSpace β] [BorelSpace α] [BorelSpace β] in
-theorem row_absolutelyContinuous_outputPrior
+lemma row_absolutelyContinuous_outputPrior
     (h : ContinuousPositiveDensity k ν) (p : ProbabilityMeasure α) (a : α) :
     k a ≪ (outputPrior k p).toMeasure := by
   have hν_ac_out :
@@ -221,7 +221,7 @@ theorem row_absolutelyContinuous_outputPrior
 
 set_option linter.unusedSectionVars false in
 omit [BorelSpace α] [BorelSpace β] in
-theorem row_klDiv_le_outputPrior_bound
+lemma row_klDiv_le_outputPrior_bound
     (h : ContinuousPositiveDensity k ν) (p : ProbabilityMeasure α) :
     ∃ B : ℝ≥0∞, B ≠ ∞ ∧
       ∀ a : α, InformationTheory.klDiv (k a) (outputPrior k p).toMeasure ≤ B := by
@@ -398,13 +398,13 @@ variable [CompactSpace α] [PolishSpace α] [BorelSpace α] [OpensMeasurableSpac
 
 omit [TopologicalSpace α] [CompactSpace α] [PolishSpace α] [BorelSpace α]
   [OpensMeasurableSpace α] in
-theorem univ_nonempty_probabilityMeasure :
+lemma univ_nonempty_probabilityMeasure :
     (Set.univ : Set (ProbabilityMeasure α)).Nonempty := by
   exact ⟨MeasureTheory.diracProba (Classical.choice ‹Nonempty α›), Set.mem_univ _⟩
 
 set_option linter.unusedSectionVars false in
 omit [Nonempty α] in
-theorem isCompact_univ_probabilityMeasure :
+lemma isCompact_univ_probabilityMeasure :
     IsCompact (Set.univ : Set (ProbabilityMeasure α)) :=
   isCompact_univ
 

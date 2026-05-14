@@ -62,7 +62,7 @@ structure WellConditionedForCapacity (k : Kernel α β) [IsMarkovKernel k] : Pro
           InformationTheory.klDiv (outputPrior k p).toMeasure ν
 
 @[simp]
-theorem priorPushforward_dirac (k : Kernel α β) [IsMarkovKernel k] (a : α) :
+lemma priorPushforward_dirac (k : Kernel α β) [IsMarkovKernel k] (a : α) :
     Kernel.priorPushforward k (MeasureTheory.diracProba a) =
       (⟨k a, ProbabilityTheory.IsMarkovKernel.isProbabilityMeasure (κ := k) a⟩ :
         ProbabilityMeasure β) := by
@@ -71,7 +71,7 @@ theorem priorPushforward_dirac (k : Kernel α β) [IsMarkovKernel k] (a : α) :
   simpa [priorPushforward, outputPrior] using
     congrArg (fun μ : Measure β => μ s) (Measure.dirac_bind k.measurable a)
 
-theorem priorPushforward_convexCombination (k : Kernel α β) [IsMarkovKernel k]
+lemma priorPushforward_convexCombination (k : Kernel α β) [IsMarkovKernel k]
     (p q : ProbabilityMeasure α) (t : NNReal) (ht : t ≤ 1) :
     Kernel.priorPushforward k (ProbabilityMeasure.convexCombination p q t ht) =
       ProbabilityMeasure.convexCombination
@@ -93,18 +93,18 @@ theorem priorPushforward_convexCombination (k : Kernel α β) [IsMarkovKernel k]
   rfl
 
 @[simp]
-theorem priorPushforward_id (p : ProbabilityMeasure α) :
+lemma priorPushforward_id (p : ProbabilityMeasure α) :
     Kernel.priorPushforward (Kernel.id : Kernel α α) p = p := by
   apply ProbabilityMeasure.toMeasure_injective
   ext s hs
   simp [priorPushforward, outputPrior]
 
-theorem id_injectivePriorPushforward :
+lemma id_injectivePriorPushforward :
     Kernel.InjectivePriorPushforward (Kernel.id : Kernel α α) := by
   intro p q hpq
   simpa using hpq
 
-theorem outputMarginalReference_self
+lemma outputMarginalReference_self
     (k : Kernel α β) [IsMarkovKernel k] (p : ProbabilityMeasure α) :
     Kernel.OutputMarginalReference k p (outputPrior k p).toMeasure := by
   exact ⟨p, Measure.AbsolutelyContinuous.rfl, rfl⟩

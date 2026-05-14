@@ -62,14 +62,14 @@ noncomputable def convexCombination (μ ν : ProbabilityMeasure Ω) (t : NNReal)
             exact_mod_cast h⟩
 
 @[simp]
-theorem convexCombination_toMeasure (μ ν : ProbabilityMeasure Ω) (t : NNReal)
+lemma convexCombination_toMeasure (μ ν : ProbabilityMeasure Ω) (t : NNReal)
     (ht : t ≤ (1 : NNReal)) :
     (convexCombination μ ν t ht).toMeasure =
       t • μ.toMeasure + ((1 : NNReal) - t) • ν.toMeasure :=
   rfl
 
 @[simp]
-theorem convexCombination_apply (μ ν : ProbabilityMeasure Ω) (t : NNReal)
+lemma convexCombination_apply (μ ν : ProbabilityMeasure Ω) (t : NNReal)
     (ht : t ≤ (1 : NNReal))
     {s : Set Ω} (_hs : MeasurableSet s) :
     (convexCombination μ ν t ht).toMeasure s =
@@ -88,7 +88,7 @@ noncomputable def outputPrior (k : Kernel α β) [IsMarkovKernel k] (p : Probabi
   ⟨k ∘ₘ p.toMeasure, by infer_instance⟩
 
 @[simp]
-theorem outputPrior_toMeasure (k : Kernel α β) [IsMarkovKernel k] (p : ProbabilityMeasure α) :
+lemma outputPrior_toMeasure (k : Kernel α β) [IsMarkovKernel k] (p : ProbabilityMeasure α) :
     (outputPrior k p).toMeasure = k ∘ₘ p.toMeasure :=
   rfl
 
@@ -98,7 +98,7 @@ noncomputable def jointLaw (k : Kernel α β) [IsMarkovKernel k] (p : Probabilit
   ⟨p.toMeasure ⊗ₘ k, by infer_instance⟩
 
 @[simp]
-theorem jointLaw_toMeasure (k : Kernel α β) [IsMarkovKernel k] (p : ProbabilityMeasure α) :
+lemma jointLaw_toMeasure (k : Kernel α β) [IsMarkovKernel k] (p : ProbabilityMeasure α) :
     (jointLaw k p).toMeasure = p.toMeasure ⊗ₘ k :=
   rfl
 
@@ -109,7 +109,7 @@ noncomputable def independentJointLaw (k : Kernel α β) [IsMarkovKernel k]
   ⟨p.toMeasure ⊗ₘ Kernel.const α q.toMeasure, by infer_instance⟩
 
 @[simp]
-theorem independentJointLaw_toMeasure (k : Kernel α β) [IsMarkovKernel k]
+lemma independentJointLaw_toMeasure (k : Kernel α β) [IsMarkovKernel k]
     (p : ProbabilityMeasure α) :
     (independentJointLaw k p).toMeasure =
       p.toMeasure ⊗ₘ Kernel.const α (outputPrior k p).toMeasure :=

@@ -30,7 +30,7 @@ def IsCapacityAchievingPrior (k : Kernel α β) [IsMarkovKernel k]
     (p : ProbabilityMeasure α) : Prop :=
   mutualInformation p k = channelCapacity k
 
-theorem channelCapacity_eq_of_isMaxOn_univ (k : Kernel α β) [IsMarkovKernel k]
+lemma channelCapacity_eq_of_isMaxOn_univ (k : Kernel α β) [IsMarkovKernel k]
     {p : ProbabilityMeasure α}
     (hp : IsMaxOn (fun q => mutualInformation q k) Set.univ p) :
     channelCapacity k = mutualInformation p k := by
@@ -49,7 +49,7 @@ theorem channelCapacity_eq_of_isMaxOn_univ (k : Kernel α β) [IsMarkovKernel k]
   · refine le_csSup hsBdd ?_
     exact ⟨p, rfl⟩
 
-theorem exists_isMaxOn_mutualInformation (k : Kernel α β) [IsMarkovKernel k]
+lemma exists_isMaxOn_mutualInformation (k : Kernel α β) [IsMarkovKernel k]
     [TopologicalSpace (ProbabilityMeasure α)]
     (hNonempty : (Set.univ : Set (ProbabilityMeasure α)).Nonempty)
     (hCompact : IsCompact (Set.univ : Set (ProbabilityMeasure α)))

@@ -53,7 +53,7 @@ end Kernel
 section DiscreteKL
 
 omit [Fintype α] in
-theorem toMeasure_eq_count_withDensity (μ : ProbabilityMeasure α) :
+lemma toMeasure_eq_count_withDensity (μ : ProbabilityMeasure α) :
     [Countable α] → μ.toMeasure = Measure.count.withDensity (fun a => μ.toMeasure {a}) := by
   intro _instCountable
   ext s hs
@@ -62,7 +62,7 @@ theorem toMeasure_eq_count_withDensity (μ : ProbabilityMeasure α) :
   simpa using (μ.toMeasure.tsum_indicator_apply_singleton s hs).symm
 
 omit [Fintype α] in
-theorem rnDeriv_count_ae (μ : ProbabilityMeasure α) :
+lemma rnDeriv_count_ae (μ : ProbabilityMeasure α) :
     [Countable α] →
       μ.toMeasure.rnDeriv Measure.count =ᵐ[Measure.count] fun a => μ.toMeasure {a} := by
   intro _instCountable
@@ -76,13 +76,13 @@ theorem rnDeriv_count_ae (μ : ProbabilityMeasure α) :
       (measurable_of_countable (fun a : α => μ.toMeasure {a})))
 
 omit [Fintype α] [MeasurableSingletonClass α] in
-theorem klFun_singletonMass (μ : ProbabilityMeasure α) (a : α) :
+lemma klFun_singletonMass (μ : ProbabilityMeasure α) (a : α) :
     InformationTheory.klFun ((μ.toMeasure {a}).toReal) =
       1 - (μ.toMeasure {a}).toReal - Real.negMulLog ((μ.toMeasure {a}).toReal) := by
   rw [InformationTheory.klFun, Real.negMulLog]
   ring
 
-theorem toReal_klDiv_count (μ : ProbabilityMeasure α) :
+lemma toReal_klDiv_count (μ : ProbabilityMeasure α) :
     (InformationTheory.klDiv μ.toMeasure Measure.count).toReal =
       (Fintype.card α : ℝ) - 1 - ProbabilityMeasure.entropy μ := by
   let _instCountable : Countable α := by infer_instance
@@ -110,7 +110,7 @@ theorem toReal_klDiv_count (μ : ProbabilityMeasure α) :
   rw [ProbabilityMeasure.entropy, hprob, Finset.card_univ]
   ring
 
-theorem sum_toReal_singletonMass (μ : ProbabilityMeasure α) :
+lemma sum_toReal_singletonMass (μ : ProbabilityMeasure α) :
     ∑ a, (μ.toMeasure {a}).toReal = 1 := by
   have hprob_enn : ∑ a, μ.toMeasure {a} = (1 : ℝ≥0∞) := by
     calc
@@ -145,7 +145,7 @@ noncomputable def conditionalEntropy (p : ProbabilityMeasure α) (k : Kernel α 
 omit [Fintype α] [MeasurableSingletonClass α] in
 /-- The KL divergence of a kernel row against counting measure is the usual finite entropy
 expression. -/
-theorem Kernel.toReal_klDiv_count_eq_card_sub_one_sub_rowEntropy
+lemma Kernel.toReal_klDiv_count_eq_card_sub_one_sub_rowEntropy
     (k : Kernel α β) [IsMarkovKernel k] (a : α) :
     (InformationTheory.klDiv (k a) Measure.count).toReal =
       (Fintype.card β : ℝ) - 1 - Kernel.rowEntropy k a := by
@@ -153,7 +153,7 @@ theorem Kernel.toReal_klDiv_count_eq_card_sub_one_sub_rowEntropy
     (toReal_klDiv_count (Kernel.rowProbabilityMeasure k a))
 
 /-- Averaging the row KL divergences against counting measure recovers the conditional entropy. -/
-theorem weighted_toReal_klDiv_count_eq_card_sub_one_sub_conditionalEntropy
+lemma weighted_toReal_klDiv_count_eq_card_sub_one_sub_conditionalEntropy
     (k : Kernel α β) [IsMarkovKernel k] (p : ProbabilityMeasure α) :
     ∑ a, (p.toMeasure {a}).toReal * (InformationTheory.klDiv (k a) Measure.count).toReal =
       (Fintype.card β : ℝ) - 1 - conditionalEntropy p k := by
@@ -178,7 +178,7 @@ theorem weighted_toReal_klDiv_count_eq_card_sub_one_sub_conditionalEntropy
           ring
 
 omit [Fintype α] in
-theorem convexCombination_toReal_apply (p q : ProbabilityMeasure α) (t : NNReal)
+lemma convexCombination_toReal_apply (p q : ProbabilityMeasure α) (t : NNReal)
     (ht : t ≤ (1 : NNReal)) (a : α) :
     ((ProbabilityMeasure.convexCombination p q t ht).toMeasure {a}).toReal =
       (t : ℝ) * (p.toMeasure {a}).toReal + (1 - (t : ℝ)) * (q.toMeasure {a}).toReal := by
@@ -197,7 +197,7 @@ theorem convexCombination_toReal_apply (p q : ProbabilityMeasure α) (t : NNReal
   simp
 
 omit [MeasurableSingletonClass β] in
-theorem conditionalEntropy_convexCombination (p q : ProbabilityMeasure α) (k : Kernel α β)
+lemma conditionalEntropy_convexCombination (p q : ProbabilityMeasure α) (k : Kernel α β)
     [IsMarkovKernel k] (t : NNReal) (ht : t ≤ (1 : NNReal)) :
     conditionalEntropy (ProbabilityMeasure.convexCombination p q t ht) k =
       (t : ℝ) * conditionalEntropy p k + (1 - (t : ℝ)) * conditionalEntropy q k := by
@@ -206,14 +206,14 @@ theorem conditionalEntropy_convexCombination (p q : ProbabilityMeasure α) (k : 
   rw [Finset.sum_add_distrib, ← Finset.mul_sum, ← Finset.mul_sum]
 
 omit [Fintype α] [MeasurableSingletonClass α] in
-theorem absolutelyContinuous_count (μ : ProbabilityMeasure α) [Countable α] :
+lemma absolutelyContinuous_count (μ : ProbabilityMeasure α) [Countable α] :
     μ.toMeasure ≪ Measure.count := by
   refine Measure.AbsolutelyContinuous.mk fun s hs hs_zero => ?_
   rw [Measure.count_eq_zero_iff] at hs_zero
   simp [hs_zero]
 
 omit [Fintype β] in
-theorem outputPrior_apply_singleton (k : Kernel α β) [IsMarkovKernel k]
+lemma outputPrior_apply_singleton (k : Kernel α β) [IsMarkovKernel k]
     (p : ProbabilityMeasure α) (b : β) :
     (outputPrior k p).toMeasure {b} = ∑ a, p.toMeasure {a} * k a {b} := by
   calc
@@ -228,7 +228,7 @@ theorem outputPrior_apply_singleton (k : Kernel α β) [IsMarkovKernel k]
           rw [tsum_fintype]
 
 omit [Fintype β] in
-theorem toReal_outputPrior_apply_singleton (k : Kernel α β) [IsMarkovKernel k]
+lemma toReal_outputPrior_apply_singleton (k : Kernel α β) [IsMarkovKernel k]
     (p : ProbabilityMeasure α) (b : β) :
     ((outputPrior k p).toMeasure {b}).toReal =
       ∑ a, (p.toMeasure {a}).toReal * (k a {b}).toReal := by
@@ -239,7 +239,7 @@ theorem toReal_outputPrior_apply_singleton (k : Kernel α β) [IsMarkovKernel k]
     exact ENNReal.mul_ne_top (measure_ne_top _ _) (measure_ne_top _ _)
 
 omit [Fintype β] in
-theorem klDiv_count_ne_top (μ : ProbabilityMeasure β) [Finite β] :
+lemma klDiv_count_ne_top (μ : ProbabilityMeasure β) [Finite β] :
     InformationTheory.klDiv μ.toMeasure Measure.count ≠ ∞ := by
   let _instFintypeβ : Fintype β := Fintype.ofFinite β
   let _instCountableβ : Countable β := by infer_instance
@@ -249,7 +249,7 @@ theorem klDiv_count_ne_top (μ : ProbabilityMeasure β) [Finite β] :
   exact ENNReal.sum_ne_top.2 fun _ _ => ENNReal.ofReal_ne_top
 
 omit [Fintype α] [Fintype β] in
-theorem joint_klDiv_count_ne_top (k : Kernel α β) [IsMarkovKernel k] [Finite α] [Finite β]
+lemma joint_klDiv_count_ne_top (k : Kernel α β) [IsMarkovKernel k] [Finite α] [Finite β]
     (p : ProbabilityMeasure α) :
     InformationTheory.klDiv
         (jointLaw k p).toMeasure
@@ -275,7 +275,7 @@ theorem joint_klDiv_count_ne_top (k : Kernel α β) [IsMarkovKernel k] [Finite �
       (measure_ne_top _ _)
 
 omit [Fintype β] in
-theorem toReal_joint_klDiv_count (k : Kernel α β) [IsMarkovKernel k] [Finite β]
+lemma toReal_joint_klDiv_count (k : Kernel α β) [IsMarkovKernel k] [Finite β]
     (p : ProbabilityMeasure α) :
     (InformationTheory.klDiv
         (jointLaw k p).toMeasure
@@ -508,20 +508,20 @@ noncomputable def singletonIndicatorContinuousMap (a : α) : C(α, ℝ) :=
   ⟨({a} : Set α).indicator (fun _ => (1 : ℝ)), continuous_of_discreteTopology⟩
 
 omit [Fintype α] in
-theorem continuous_toReal_apply_singleton (a : α) :
+lemma continuous_toReal_apply_singleton (a : α) :
     Continuous fun p : ProbabilityMeasure α => (p.toMeasure {a}).toReal := by
   let f : C(α, ℝ) := singletonIndicatorContinuousMap a
   simpa [f, singletonIndicatorContinuousMap, measureReal_def, integral_indicator_one] using
     (ProbabilityMeasure.continuous_integral_continuousMap f)
 
-theorem continuous_entropy :
+lemma continuous_entropy :
     Continuous fun p : ProbabilityMeasure α => ProbabilityMeasure.entropy p := by
   simpa [ProbabilityMeasure.entropy] using
     (continuous_finset_sum (s := Finset.univ) fun a _ha =>
       Real.continuous_negMulLog.comp (continuous_toReal_apply_singleton a))
 
 omit [TopologicalSpace α] [DiscreteTopology α] [BorelSpace α] [CompactSpace α] in
-theorem ProbabilityMeasure.integral_eq_sum_singletonMass (μ : ProbabilityMeasure α) (f : α → ℝ) :
+lemma ProbabilityMeasure.integral_eq_sum_singletonMass (μ : ProbabilityMeasure α) (f : α → ℝ) :
     ∫ a, f a ∂μ.toMeasure = ∑ a, (μ.toMeasure {a}).toReal * f a := by
   have hf : Integrable f μ.toMeasure := by
     have hf_simple :
@@ -534,7 +534,7 @@ theorem ProbabilityMeasure.integral_eq_sum_singletonMass (μ : ProbabilityMeasur
 
 omit [Fintype α] [Fintype β] [TopologicalSpace β] [DiscreteTopology β] [BorelSpace β]
   [CompactSpace β] in
-theorem continuous_outputPrior_toReal_apply_singleton [Finite α]
+lemma continuous_outputPrior_toReal_apply_singleton [Finite α]
     (k : Kernel α β) [IsMarkovKernel k] (b : β) :
     Continuous fun p : ProbabilityMeasure α => ((outputPrior k p).toMeasure {b}).toReal := by
   let _instFintypeα : Fintype α := Fintype.ofFinite α
@@ -548,7 +548,7 @@ theorem continuous_outputPrior_toReal_apply_singleton [Finite α]
   exact toReal_outputPrior_apply_singleton k p b
 
 omit [Fintype α] [Fintype β] [DiscreteTopology β] in
-theorem continuous_outputPrior [Finite α] [Finite β] (k : Kernel α β) [IsMarkovKernel k] :
+lemma continuous_outputPrior [Finite α] [Finite β] (k : Kernel α β) [IsMarkovKernel k] :
     Continuous fun p : ProbabilityMeasure α => outputPrior k p := by
   let _instFintypeα : Fintype α := Fintype.ofFinite α
   let _instFintypeβ : Fintype β := Fintype.ofFinite β
@@ -564,7 +564,7 @@ theorem continuous_outputPrior [Finite α] [Finite β] (k : Kernel α β) [IsMar
   rw [ProbabilityMeasure.integral_eq_sum_singletonMass]
 
 omit [Fintype α] [TopologicalSpace β] [DiscreteTopology β] [BorelSpace β] [CompactSpace β] in
-theorem continuous_outputEntropy [Finite α] (k : Kernel α β) [IsMarkovKernel k] :
+lemma continuous_outputEntropy [Finite α] (k : Kernel α β) [IsMarkovKernel k] :
     Continuous fun p : ProbabilityMeasure α => ProbabilityMeasure.entropy (outputPrior k p) := by
   let _instFintypeα : Fintype α := Fintype.ofFinite α
   simpa [ProbabilityMeasure.entropy] using
@@ -573,7 +573,7 @@ theorem continuous_outputEntropy [Finite α] (k : Kernel α β) [IsMarkovKernel 
 
 omit [MeasurableSingletonClass β] [TopologicalSpace β] [DiscreteTopology β] [BorelSpace β]
   [CompactSpace β] in
-theorem continuous_conditionalEntropy (k : Kernel α β) [IsMarkovKernel k] :
+lemma continuous_conditionalEntropy (k : Kernel α β) [IsMarkovKernel k] :
     Continuous fun p : ProbabilityMeasure α => conditionalEntropy p k := by
   simpa [conditionalEntropy] using
     (continuous_finset_sum (s := (Finset.univ : Finset α)) fun a _ha =>
@@ -581,7 +581,7 @@ theorem continuous_conditionalEntropy (k : Kernel α β) [IsMarkovKernel k] :
 
 omit [Fintype α] [Fintype β] [TopologicalSpace β] [DiscreteTopology β] [BorelSpace β]
   [CompactSpace β] in
-theorem continuous_mutualInformation_of_finite [Finite α] [Finite β]
+lemma continuous_mutualInformation_of_finite [Finite α] [Finite β]
     (k : Kernel α β) [IsMarkovKernel k] :
     Continuous fun p : ProbabilityMeasure α => mutualInformation p k := by
   let _instFintypeα : Fintype α := Fintype.ofFinite α
@@ -595,7 +595,7 @@ end FiniteWeakTopology
 section
 
 omit [Fintype β] in
-private theorem exists_unique_capacity_achieving_prior_of_finite_aux [Finite β]
+private lemma exists_unique_capacity_achieving_prior_of_finite_aux [Finite β]
     [Nonempty α] [TopologicalSpace α] [TopologicalSpace β]
     [DiscreteTopology α] [DiscreteTopology β] [T2Space α] [T2Space β]
     [BorelSpace α] [BorelSpace β] [CompactSpace α] [CompactSpace β]

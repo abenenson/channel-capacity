@@ -26,13 +26,13 @@ open scoped ENNReal NNReal
 
 namespace ChannelCapacity.DischargedExample
 
-private theorem threeQuarter_add_oneQuarter :
+private lemma threeQuarter_add_oneQuarter :
     (3 / 4 : ℝ≥0∞) + 1 / 4 = 1 := by
   have h : ((3 / 4 : ℝ≥0) + 1 / 4 : ℝ≥0) = 1 := by
     norm_num
   exact (by simpa using congrArg (fun x : ℝ≥0 => (x : ℝ≥0∞)) h)
 
-private theorem oneQuarter_add_threeQuarter :
+private lemma oneQuarter_add_threeQuarter :
     (1 / 4 : ℝ≥0∞) + 3 / 4 = 1 := by
   simpa [add_comm] using threeQuarter_add_oneQuarter
 
@@ -50,7 +50,7 @@ noncomputable def twoByTwoRows (i : Fin 2) : ProbabilityMeasure (Fin 2) :=
   ⟨(twoByTwoRowPMF i).toMeasure, by infer_instance⟩
 
 @[simp]
-theorem twoByTwoRows_apply_singleton (i j : Fin 2) :
+lemma twoByTwoRows_apply_singleton (i j : Fin 2) :
     (twoByTwoRows i).toMeasure {j} = twoByTwoRowPMF i j := by
   simp [twoByTwoRows]
 
@@ -58,12 +58,12 @@ noncomputable def twoByTwoKernel : Kernel (Fin 2) (Fin 2) :=
   Kernel.ofFunOfCountable fun i => (twoByTwoRows i).toMeasure
 
 @[simp]
-theorem twoByTwoKernel_apply (i : Fin 2) :
+lemma twoByTwoKernel_apply (i : Fin 2) :
     twoByTwoKernel i = (twoByTwoRows i).toMeasure := by
   rfl
 
 @[simp]
-theorem twoByTwoKernel_apply_singleton (i j : Fin 2) :
+lemma twoByTwoKernel_apply_singleton (i j : Fin 2) :
     twoByTwoKernel i {j} = twoByTwoRowPMF i j := by
   simp [twoByTwoKernel_apply, twoByTwoRows]
 
@@ -77,7 +77,7 @@ noncomputable def twoByTwoDensity (i j : Fin 2) : NNReal :=
   if i = j then 3 / 4 else 1 / 4
 
 @[simp]
-theorem twoByTwoDensity_apply (i j : Fin 2) :
+lemma twoByTwoDensity_apply (i j : Fin 2) :
     (twoByTwoDensity i j : ℝ≥0∞) = twoByTwoRowPMF i j := by
   fin_cases i <;> fin_cases j <;> simp [twoByTwoDensity, twoByTwoRowPMF]
 

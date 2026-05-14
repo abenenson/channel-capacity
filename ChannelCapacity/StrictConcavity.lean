@@ -27,7 +27,7 @@ variable {α : Type*} [MeasurableSpace α]
 
 /-- Two global maximizers coincide if the function is strictly concave along convex combinations of
 probability measures. -/
-theorem eq_of_isMaxOn_univ_of_strictConcave
+lemma eq_of_isMaxOn_univ_of_strictConcave
     {f : ProbabilityMeasure α → ℝ}
     (hStrict : ∀ (p q : ProbabilityMeasure α) (_h_ne : p ≠ q) (t : NNReal)
       (_ht_pos : 0 < t) (ht_lt_one : t < 1),
@@ -61,7 +61,7 @@ theorem eq_of_isMaxOn_univ_of_strictConcave
     simpa [hRewrite] using hMixGt
   exact (not_lt_of_ge hMixLe) hMixGt'
 
-theorem convexCombination_comm (p q : ProbabilityMeasure α) (t : NNReal) (ht : t ≤ 1) :
+lemma convexCombination_comm (p q : ProbabilityMeasure α) (t : NNReal) (ht : t ≤ 1) :
     ProbabilityMeasure.convexCombination p q t ht =
       ProbabilityMeasure.convexCombination q p (1 - t) (tsub_le_self) := by
   apply ProbabilityMeasure.toMeasure_injective
@@ -73,7 +73,7 @@ theorem convexCombination_comm (p q : ProbabilityMeasure α) (t : NNReal) (ht : 
     exact_mod_cast tsub_tsub_cancel_of_le ht
   rw [htsub, add_comm]
 
-theorem eq_left_of_convexCombination_eq {p q : ProbabilityMeasure α} {t : NNReal}
+lemma eq_left_of_convexCombination_eq {p q : ProbabilityMeasure α} {t : NNReal}
     (ht_lt_one : t < 1)
     (h : ProbabilityMeasure.convexCombination p q t (le_of_lt ht_lt_one) = p) :
     q = p := by
@@ -110,7 +110,7 @@ theorem eq_left_of_convexCombination_eq {p q : ProbabilityMeasure α} {t : NNRea
     exact mul_left_cancel₀ ht_ne hs_real'
   exact (ENNReal.toReal_eq_toReal_iff' hq_fin hp_fin).mp hs_toReal
 
-theorem eq_right_of_convexCombination_eq {p q : ProbabilityMeasure α} {t : NNReal}
+lemma eq_right_of_convexCombination_eq {p q : ProbabilityMeasure α} {t : NNReal}
     (ht_pos : 0 < t) (ht_lt_one : t < 1)
     (h : ProbabilityMeasure.convexCombination p q t (le_of_lt ht_lt_one) = q) :
     p = q := by
@@ -125,13 +125,13 @@ theorem eq_right_of_convexCombination_eq {p q : ProbabilityMeasure α} {t : NNRe
       _ = q := h
   exact eq_left_of_convexCombination_eq (p := q) (q := p) htsub_lt_one hswap
 
-theorem convexCombination_ne_left {p q : ProbabilityMeasure α} (h_ne : p ≠ q) {t : NNReal}
+lemma convexCombination_ne_left {p q : ProbabilityMeasure α} (h_ne : p ≠ q) {t : NNReal}
     (ht_lt_one : t < 1) :
     ProbabilityMeasure.convexCombination p q t (le_of_lt ht_lt_one) ≠ p := by
   intro h
   exact h_ne ((eq_left_of_convexCombination_eq ht_lt_one h).symm)
 
-theorem convexCombination_ne_right {p q : ProbabilityMeasure α} (h_ne : p ≠ q) {t : NNReal}
+lemma convexCombination_ne_right {p q : ProbabilityMeasure α} (h_ne : p ≠ q) {t : NNReal}
     (ht_pos : 0 < t) (ht_lt_one : t < 1) :
     ProbabilityMeasure.convexCombination p q t (le_of_lt ht_lt_one) ≠ q := by
   intro h
@@ -147,7 +147,7 @@ variable {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
 
 namespace Kernel
 
-private theorem mutualInformation_strictlyConcave_aux
+private lemma mutualInformation_strictlyConcave_aux
     {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
     [MeasurableSpace.CountableOrCountablyGenerated α β]
     (k : Kernel α β) [IsMarkovKernel k]
