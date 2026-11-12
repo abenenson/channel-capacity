@@ -1,5 +1,7 @@
 # channel-capacity
 
+[![Lean Action CI](https://github.com/abenenson/channel-capacity/actions/workflows/lean_action_ci.yml/badge.svg?branch=main)](https://github.com/abenenson/channel-capacity/actions/workflows/lean_action_ci.yml)
+
 Lean 4 formalization of **Shannon capacity-achieving prior uniqueness** for Markov kernels.
 
 The library has three aligned theorem layers:
@@ -21,9 +23,16 @@ For the mathematical exposition — why the three layers, what is discharged vs.
 ## Build
 
 ```bash
-lake build
+lake exe cache get
+lake build --wfail ChannelCapacity ChannelCapacity.Counterexample ChannelCapacity.DischargedExample
 ./scripts/verify.sh ChannelCapacity
 ```
+
+CI checks the library and both opt-in examples with warnings treated as errors and compiles API
+documentation on pushes, pull requests, and manual runs. Documentation is available as the
+`api-docs` workflow artifact. To build it locally, run `./scripts/build-docs.sh`; the output is in
+`public-docs/docs/`. Optional GitHub Pages publication requires Pages to use GitHub Actions and the
+repository variable `PUBLISH_DOCS` to be `true`; publication then runs on pushes to `main`.
 
 ## Usage
 
