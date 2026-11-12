@@ -160,8 +160,6 @@ with the same output law.
   compactness of `ProbabilityMeasure` on compact spaces
 - Mathlib finite-simplex and convex-analysis infrastructure, used as structural prior art even
   where the final proof is phrased directly on `ProbabilityMeasure`
-- SFT/OmegaFlow as proof-structure prior art for KL strict concavity and compactness packaging;
-  this repository does not import it
 - C. E. Shannon, "A Mathematical Theory of Communication" (1948)
 - I. M. Gel'fand and A. M. Yaglom, work on mutual information for general random objects
 - S. Arimoto, "An Algorithm for Computing the Capacity of Arbitrary Discrete Memoryless Channels"
